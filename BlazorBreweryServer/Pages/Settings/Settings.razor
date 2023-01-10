@@ -1,0 +1,16 @@
+﻿@page "/settings"
+@using BlazorBreweryServer.Services.ViewModels.Settings
+@using BlazorBreweryServer.ViewModels.Settings;
+@using BlazorBreweryServer.Services.Interfaces.ViewModels.Settings
+@inject ISettingsViewModelService SettingService;
+
+<h3>Settings</h3>
+
+@code {
+    SettingsViewModel? _settingsViewModel;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _settingsViewModel = await SettingService.GetSettingsViewModel();
+    }
+}

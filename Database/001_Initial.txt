@@ -1,0 +1,55 @@
+CREATE SCHEMA `blazorbrewery` ;
+
+-- BlazorBreweryUser Tester12 Privileg auf BlazorBrewery
+
+
+CREATE TABLE `blazorbrewery`.`users` (
+  `Id` INT NOT NULL AUTO_INCREMENT,
+  `Name` VARCHAR(45) NULL,
+  `Count` INT NULL,
+  PRIMARY KEY (`Id`));
+
+
+CREATE TABLE `blazorbrewery`.`recipes` (
+  `Id` CHAR(36) NOT NULL,
+  `Name` VARCHAR(100) NULL,
+  `Description` VARCHAR(500) NULL,
+  PRIMARY KEY (`Id`));
+
+
+CREATE TABLE `blazorbrewery`.`ingredients` (
+  `Id` CHAR(36) NOT NULL,
+  `RecipeId` CHAR(36) NULL,
+  `Name` VARCHAR(100) NULL,
+  `Amount` DOUBLE NULL,
+  `UnitId` CHAR(36) NULL,
+  PRIMARY KEY (`Id`));
+
+CREATE TABLE `blazorbrewery`.`steps` (
+  `Id` CHAR(36) NOT NULL,
+  `RecipeId` CHAR(36) NULL,
+  `Name` VARCHAR(100) NULL,
+  `Position` INT NULL,
+  `DurationSeconds` INT NULL,
+  `TargetTemperature` DOUBLE NULL,
+  `Typ` INT NULL,
+  PRIMARY KEY (`Id`));
+
+CREATE TABLE `blazorbrewery`.`units` (
+  `Id` CHAR(36) NOT NULL,
+  `Name` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`Id`));
+
+
+
+INSERT INTO `blazorbrewery`.`recipes` (`Id`, `Name`, `Description`) VALUES ('B2A5C85B-313E-4C60-AE74-CDDC4BF45B32', 'Helles', 'Bier #1');
+INSERT INTO `blazorbrewery`.`steps` (`Id`, `RecipeId`, `Name`, `Position`, `DurationSeconds`, `TargetTemperature`, `Typ`) VALUES ('57028BF0-6E5C-4899-B723-8D0FCAF2B991', 'B2A5C85B-313E-4C60-AE74-CDDC4BF45B32', 'Aufwärmen', '1', '0', '40', '1');
+INSERT INTO `blazorbrewery`.`ingredients` (`Id`, `RecipeId`, `Name`, `Amount`, `UnitId`) VALUES ('A2ABAB24-2444-45E8-923F-2F8A077B887A', 'B2A5C85B-313E-4C60-AE74-CDDC4BF45B32', 'Gerste', '40', '8A45E83F-C871-4AC3-AD4D-EF707BD26A75');
+
+
+INSERT INTO `blazorbrewery`.`units` (`Id`, `Name`) VALUES ('3014B0A5-ACB8-401C-BD8B-03CED5A14B81', 'ml');
+INSERT INTO `blazorbrewery`.`units` (`Id`, `Name`) VALUES ('4B917A76-4227-4248-A914-9CA141639618', 'l');
+INSERT INTO `blazorbrewery`.`units` (`Id`, `Name`) VALUES ('8A45E83F-C871-4AC3-AD4D-EF707BD26A75', 'kg');
+INSERT INTO `blazorbrewery`.`units` (`Id`, `Name`) VALUES ('A2B6351B-CEF6-4724-B7DC-B18EC1CABCDA', 'g');
+
+

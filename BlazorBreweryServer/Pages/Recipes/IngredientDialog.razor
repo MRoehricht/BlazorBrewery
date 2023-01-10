@@ -1,0 +1,51 @@
+﻿@using BlazorBrewery.Core.Models.Ingredients;
+@using BlazorBrewery.Database.Interfaces.Repositories;
+
+@inject IRecipeRepository RecipeRepository;
+
+
+<MudDialog>
+    
+    <DialogContent>       
+        <MudForm>       
+            <MudContainer Class="d-flex justify-end flex-grow-1 gap-2">
+                <MudTextField @bind-Value="Name" Label="Name" Variant="Variant.Text" Required="true" RequiredError="User name is required!"></MudTextField>
+                <MudNumericField @bind-Value="Amount" Label="Filled" Variant="Variant.Text" Min="0.0" />
+                <MudSelect Margin="Margin.Dense" @bind-Value="SelectedUnit" T="Unit" Label="Einheit" Variant="Variant.Text">
+                    @foreach (var unit in _units){<MudSelectItem Value="unit" />}
+                </MudSelect>
+            </MudContainer>
+            <MudContainer Class="d-flex justify-end flex-grow-1 gap-2">   
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Register</MudButton>
+                <MudButton OnClick="Cancel">Cancel</MudButton>
+            </MudContainer>
+        </MudForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    private Ingredient _ingredient = new Ingredient();
+    private List<Unit> _units = new List<Unit>();
+    
+    public string Name { get; set; }
+    public double Amount { get; set; }
+    public Unit? SelectedUnit { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _units = await RecipeRepository.GetUnits();
+    }
+
+    private void OnValidSubmit(EditContext context)
+    {
+
+        StateHasChanged();
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}
+

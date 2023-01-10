@@ -1,0 +1,76 @@
+﻿@page "/recipes"
+@using BlazorBrewery.Core.Models.Brewing
+@using BlazorBrewery.Database.Interfaces.Repositories;
+@using BlazorBreweryServer.Services.Interfaces.ViewModels.Recipes
+@using BlazorBreweryServer.Services.ViewModels.Recipes
+@using BlazorBreweryServer.ViewModels.Recipes
+@inject IRecipesViewModelService RecipesViewModelService;
+@inject IDialogService Dialog
+@inject IRecipeRepository RecipeRepository;
+
+<h3>Rezepte</h3>
+@if (_viewModel == null)
+{
+    <div style="display: flex; justify-content: center;">
+        <MudProgressCircular Class="object-center" Color="Color.Default" Indeterminate="true" />
+    </div>
+}
+else
+{
+    <MudTable Items="@_viewModel.Recipes" Hover="true" Striped="true" Bordered="true" Breakpoint="Breakpoint.Sm" OnRowClick="RowClickEvent" T="BrewingRecipe">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Beschreibung</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+
+
+
+@code {
+    RecipesViewModel? _viewModel = null;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _viewModel = await RecipesViewModelService.GetRecipes();
+            StateHasChanged();
+        }        
+    }
+
+
+    private async Task RowClickEvent(TableRowClickEventArgs<BrewingRecipe> tableRowClickEventArgs)
+    {
+        DialogOptions maxWidth = new DialogOptions() { MaxWidth = MaxWidth.Large, FullWidth = true, DisableBackdropClick = true, CloseButton = false, NoHeader=true };
+        DialogOptions noHeader = new DialogOptions() { NoHeader = true };
+        DialogOptions fullScreen = new DialogOptions() { FullScreen = true, CloseButton = true };
+
+        var parameters = new DialogParameters();
+        parameters.Add(nameof(BrewingRecipe), tableRowClickEventArgs.Item);
+
+        var dialogName = tableRowClickEventArgs.Item?.Name ?? "Neues Rezept";
+
+        var dialog = Dialog.Show<RecipeDialog>(dialogName, parameters, maxWidth);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            if (result.Data is BrewingRecipe brewingRecipe)
+            {
+                await RecipeRepository.Save(brewingRecipe);
+            }      
+        }
+
+        _viewModel = null;
+        StateHasChanged();
+
+        _viewModel = await RecipesViewModelService.GetRecipes();
+        StateHasChanged();
+    }
+}

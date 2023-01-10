@@ -1,0 +1,81 @@
+﻿@using BlazorBrewery.Core.Models.Brewing;
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudContainer>
+            @if (BrewingRecipe != null)
+            {                
+                <EditForm Model="@BrewingRecipe" OnValidSubmit="OnValidSubmit">
+                    <DataAnnotationsValidator />
+                    <MudCard >
+                        <MudCardContent>
+                            <MudTextField Label="Name" HelperText="Erforderlich" Class="m-2"
+                                        @bind-Value="BrewingRecipe.Name" For="@(() => BrewingRecipe.Name)" />
+                            <MudTextField Label="Beschreibung" Variant="Variant.Outlined" Lines="3" Class="m-2"
+                                        @bind-Value="BrewingRecipe.Description" For="@(() => BrewingRecipe.Description)" />
+                            <MudDivider DividerType="DividerType.FullWidth" Class="m-2" />
+                            <MudText GutterBottom="true">Zutaten</MudText><MudIconButton Icon="@Icons.Material.Filled.Add" OnClick="Add"></MudIconButton>
+                            <MudChipSet AllClosable="true" OnClose="Closed">
+                                @foreach (var value in values)
+                                {
+                                    <MudChip Text="@value"></MudChip>
+                                }
+                            </MudChipSet>
+                        </MudCardContent>
+                        <MudCardActions>                           
+                                <MudContainer Class="d-flex justify-end flex-grow-1 gap-2">                                    
+                                    <MudButton  ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Ok</MudButton>
+                                    <MudButton  OnClick="Cancel">Cancel</MudButton>
+                                </MudContainer>
+                        </MudCardActions>
+                    </MudCard>                    
+                </EditForm>               
+            }
+        </MudContainer>       
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public BrewingRecipe? BrewingRecipe { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if(BrewingRecipe?.Ingredients != null) 
+        {
+            foreach (var ingredient in BrewingRecipe.Ingredients)
+            {
+                values.Add(ingredient.ToString());
+            }
+
+        }
+    }
+
+
+    private void OnValidSubmit(EditContext context)
+    {
+
+        StateHasChanged();
+        MudDialog.Close(DialogResult.Ok(BrewingRecipe));
+    }
+
+    List<string> values = new List<string>();
+
+    public void Closed(MudChip chip) => values.Remove(chip.Text);
+    public async void Add()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = DialogService.Show<IngredientDialog>("Zutat hinzufügen", options);
+        var result = await dialog.Result;
+    }
+
+
+    void Cancel() => MudDialog.Cancel();
+}
+
