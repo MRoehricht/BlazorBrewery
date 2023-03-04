@@ -1,7 +1,7 @@
 ﻿using BlazorBrewery.Database.Interfaces.Repositories;
 using BlazorBrewery.Database.Repositories;
 using BlazorBreweryInterface.Controller;
-using BlazorBreweryInterface.Debug.Controller;
+using BlazorBreweryInterface.Fake.Controller;
 using BlazorBreweryInterface.Interfaces;
 using BlazorBreweryServer.Services.Interfaces.ViewModels.Recipes;
 using BlazorBreweryServer.Services.Interfaces.ViewModels.Settings;
@@ -17,9 +17,9 @@ namespace BlazorBreweryServer
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             if (env != null && env == "Development")
             {
-                services.AddScoped<IOneWireDeviceController, DebugOneWireDeviceController>();
-                services.AddScoped<IPinController, DebugPinController>();
-                services.AddScoped<IThermometerController, DebugThermometerController>();
+                services.AddScoped<IOneWireDeviceController, FakeOneWireDeviceController>();
+                services.AddScoped<IPinController, FakePinController>();
+                services.AddScoped<IThermometerController, FakeThermometerController>();
             }
             else
             {

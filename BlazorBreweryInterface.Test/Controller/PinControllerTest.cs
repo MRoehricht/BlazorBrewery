@@ -1,4 +1,4 @@
-﻿using BlazorBreweryInterface.Debug.Controller;
+﻿using BlazorBreweryInterface.Fake.Controller;
 using BlazorBreweryInterface.Interfaces;
 
 namespace BlazorBreweryInterface.Test.Controller
@@ -10,7 +10,7 @@ namespace BlazorBreweryInterface.Test.Controller
         [SetUp]
         public void Setup()
         {
-            _pinController = new DebugPinController();
+            _pinController = new FakePinController();
         }
 
         [Test]
