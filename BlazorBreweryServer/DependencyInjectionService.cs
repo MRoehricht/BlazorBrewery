@@ -3,8 +3,10 @@ using BlazorBrewery.Database.Repositories;
 using BlazorBreweryInterface.Controller;
 using BlazorBreweryInterface.Fake.Controller;
 using BlazorBreweryInterface.Interfaces;
+using BlazorBreweryServer.Services.Interfaces.ViewModels.Brewing;
 using BlazorBreweryServer.Services.Interfaces.ViewModels.Recipes;
 using BlazorBreweryServer.Services.Interfaces.ViewModels.Settings;
+using BlazorBreweryServer.Services.ViewModels.Brewing;
 using BlazorBreweryServer.Services.ViewModels.Recipes;
 using BlazorBreweryServer.Services.ViewModels.Settings;
 
@@ -34,8 +36,8 @@ namespace BlazorBreweryServer
 
             services.AddScoped<IRecipesViewModelService, RecipesViewModelService>();
             services.AddScoped<ISettingsViewModelService, SettingsViewModelService>();
-
-
+            services.AddScoped<IBrewingStepViewModelService, BrewingStepViewModelService>();
+            services.AddScoped<IBrewingViewModelService, BrewingViewModelService>();
         }
     }
 }

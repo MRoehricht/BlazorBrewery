@@ -1,0 +1,109 @@
+﻿@page "/brewingStep"
+@using BlazorBrewery.Core.Models.Brewing;
+
+@if (BrewingStep != null)
+{
+    <MudItem Class="mx-12 my-4">
+        <MudPaper Class="pa-3">
+            <div class="d-flex gap-2">           
+            <MudButtonGroup Class="order-0" Color="Color.Primary" Size="Size.Small" Variant="Variant.Outlined">
+                <MudIconButton ReadOnly="IsReadOnly" Icon="@Icons.Material.Filled.ArrowDropUp" Variant="Variant.Outlined" Size="Size.Small" OnClick="PositionUp"></MudIconButton>
+                <MudIconButton ReadOnly="IsReadOnly" Icon="@Icons.Material.Filled.ArrowDropDown" Variant="Variant.Outlined" Size="Size.Small" OnClick="PositionDown"></MudIconButton>
+            </MudButtonGroup>
+                <MudIconButton ReadOnly="IsReadOnly" Class="order-1 d-flex flex-row-reverse" Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Primary" Size="Size.Small" Variant="Variant.Outlined" OnClick="DeleteItem"></MudIconButton>
+            </div>
+        <MudForm>
+            <MudGrid>
+            <MudItem xs="1">
+                <MudTextField T="int" ReadOnly="true" Label="Position" @bind-Value="BrewingStep.Position" />
+            </MudItem>
+                <MudItem xs="4">
+                    <MudTextField T="string" ReadOnly="IsReadOnly" Label="Name" @bind-Value="BrewingStep.Name" RequiredError="Name erforderlich" />
+                </MudItem>
+                <MudItem xs="2">
+                @if (BrewingStep.Typ == BrewingStepTyp.HoldTemperature || BrewingStep.Typ == BrewingStepTyp.Waiting)
+                {
+                    <MudTextField T="int" ReadOnly="IsReadOnly" Label="Dauer (Minuten)" @bind-Value="BrewingStep.DurationSeconds" RequiredError="Dauer erforderlich" />
+                }
+                </MudItem>
+                <MudItem xs="2">
+                @if (BrewingStep.Typ == BrewingStepTyp.Heat || BrewingStep.Typ == BrewingStepTyp.HoldTemperature || BrewingStep.Typ == BrewingStepTyp.CoolDown)
+                {
+                    <MudTextField T="double" ReadOnly="IsReadOnly" Label="Temperatur (°C)" @bind-Value="BrewingStep.TargetTemperature" RequiredError="Temperatur erforderlich" />
+                }
+                </MudItem>
+                <MudItem xs="3">
+                        <MudSelect @bind-Value="BrewingStep.Typ" ReadOnly="IsReadOnly" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (BrewingStepTyp item in Enum.GetValues(typeof(BrewingStepTyp)))
+                        {
+                            <MudSelectItem Value="@item">@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>                   
+            </MudGrid>
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+}
+
+
+@code{
+
+    [Parameter]
+    public BrewingStep? BrewingStep { get; set; }
+
+    [Parameter]
+    public bool IsReadOnly { get; set; }
+
+    [Parameter]
+    public BrewingRecipe? SelectedRecipe { get; set; }
+
+    [Parameter]
+    public Action Refresh { get; set; }
+
+    public void DeleteItem()
+    {
+        if (BrewingStep == null || SelectedRecipe == null || IsReadOnly) return;
+        var item = SelectedRecipe.BrewingSteps.FirstOrDefault(_ => _.Id == BrewingStep.Id);
+        if (item == null) return;
+
+        var newPosition = item.Position;
+
+        foreach (var brewingStep in SelectedRecipe.BrewingSteps.Where(_ => _.Position > newPosition).OrderBy(_ => _.Position))
+        {
+            brewingStep.Position--;
+        }
+        
+        
+        SelectedRecipe.BrewingSteps.Remove(item);
+        Refresh();
+    }
+
+    public void PositionUp()
+    {
+        if (BrewingStep == null || SelectedRecipe == null || BrewingStep.Position == 1 || IsReadOnly) return;
+        ChangePosition(BrewingStep.Position - 1);
+    }
+
+    public void PositionDown()
+    {
+        if (BrewingStep == null || SelectedRecipe == null || IsReadOnly) return;
+        var newPosition = BrewingStep.Position + 1;
+        if (SelectedRecipe.BrewingSteps.Count < newPosition) return;        
+        ChangePosition(newPosition);
+    }
+
+    private void ChangePosition(int newPosition)
+    {
+        if (BrewingStep == null || SelectedRecipe == null || IsReadOnly) return;
+        var currentPosition = BrewingStep.Position;
+
+        var replacingItem = SelectedRecipe.BrewingSteps.FirstOrDefault(_ => _.Position == newPosition);
+        if (replacingItem == null) return;
+
+        replacingItem.Position = currentPosition;
+        BrewingStep.Position = newPosition;
+
+        Refresh();
+    }
+}

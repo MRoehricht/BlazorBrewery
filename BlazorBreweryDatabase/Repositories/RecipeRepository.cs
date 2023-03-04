@@ -68,6 +68,49 @@ namespace BlazorBrewery.Database.Repositories
             entity.Name = brewingRecipe.Name;
             entity.Description = brewingRecipe.Description;
             SetIngredientEntity(entity, brewingRecipe.Ingredients);
+            SetSteps(entity, brewingRecipe.BrewingSteps);
+        }
+
+        private void SetSteps(RecipeEntity entity, List<BrewingStep> brewingSteps)
+        {
+            foreach (var step in brewingSteps)
+            {
+                var dbStep = _recipeContext.Steps.Find(step.Id);
+                if (dbStep != null)
+                {
+                    dbStep.Name = step.Name;
+                    dbStep.RecipeId = entity.Id;
+                    dbStep.DurationSeconds = step.DurationSeconds;
+                    dbStep.Position = step.Position;
+                    dbStep.TargetTemperature = step.TargetTemperature;
+                    dbStep.Typ = step.Typ;
+                }
+                else
+                {
+                    _recipeContext.Steps.Add(new StepEntity
+                    {
+                        Id = step.Id,
+                        Name = step.Name,
+                        DurationSeconds = step.DurationSeconds,
+                        Position = step.Position,
+                        RecipeId = entity.Id,
+                        TargetTemperature = step.TargetTemperature,
+                        Typ = step.Typ
+                    });
+                }
+            }
+
+            var dbGuids = _recipeContext.Steps.Where(_ => _.RecipeId == entity.Id).Select(_ => _.Id).ToList();
+            var recipeGuids = brewingSteps.Select(s => s.Id).ToList();
+
+            //Gelöschte
+            var deletedIds = dbGuids.Except(recipeGuids).ToList();
+            foreach (var id in deletedIds)
+            {
+                _recipeContext.Steps.Remove(_recipeContext.Steps.Find(id));
+            }
+
+            _recipeContext.SaveChanges();
         }
 
         private void SetIngredientEntity(RecipeEntity entity, List<Ingredient> ingredients)
@@ -122,6 +165,24 @@ namespace BlazorBrewery.Database.Repositories
                 output.Add(Parse(unit));
             }
             return output;
+        }
+
+        public async Task<BrewingStep?> GetBrewingStep(Guid id)
+        {
+            var entity = await _recipeContext.Steps.FindAsync(id);
+
+            if (entity == null) return null;
+
+            return new BrewingStep
+            {
+                Id = id,
+                BrewingRecipeId = entity.RecipeId,
+                DurationSeconds = entity.DurationSeconds,
+                Position = entity.Position,
+                Name = entity.Name,
+                TargetTemperature = entity.TargetTemperature,
+                Typ = entity.Typ
+            };
         }
     }
 }

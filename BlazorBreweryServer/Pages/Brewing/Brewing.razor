@@ -1,0 +1,86 @@
+﻿@page "/Brewing"
+@using BlazorBrewery.Core.Models.Brewing;
+@using BlazorBreweryServer.Services.Interfaces.ViewModels.Brewing;
+@using BlazorBreweryServer.ViewModels.Brewing;
+@using BlazorBreweryServer.ViewModels.Recipes;
+@inject IBrewingViewModelService BrewingViewModelService;
+
+<PageTitle>Brauen</PageTitle>
+
+<h1>Brauen</h1>
+
+@if (_viewModel != null)
+{
+    <MudSelect T="BrewingRecipe" @bind-Value="_viewModel.SelectedRecipe" ReadOnly="_isBrewingStarted" Label="Rezept" Placeholder="Bitte wählen" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" OpenIcon="@Icons.Material.Filled.LocalDrink">
+        @foreach (BrewingRecipe item in _viewModel.Recipes)
+        {
+            <MudSelectItem Value="@item">@item.Name</MudSelectItem>
+        }
+    </MudSelect>
+
+    @if (_viewModel.SelectedRecipe != null)
+    {
+        @if (!_isBrewingStarted)
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.PlaylistAdd" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="AddItem"></MudIconButton>
+            <MudIconButton Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="Save"></MudIconButton>        
+            <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="StartBrewing"></MudIconButton>
+        }        
+        @if (_isBrewingStarted)
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.Stop" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="StopBrewing"></MudIconButton>
+        }
+      
+        
+
+        @foreach (BrewingStep step in _viewModel.SelectedRecipe.BrewingSteps.OrderBy(_ => _.Position))
+        {
+            <BrewingStepPage BrewingStep="step" IsReadOnly="_isBrewingStarted" SelectedRecipe="_viewModel.SelectedRecipe" Refresh="Refresh" />
+        }
+    }
+
+   
+}
+
+
+
+
+
+@code {
+    private BrewingViewModel? _viewModel = null;
+    private bool _isBrewingStarted = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _viewModel = await BrewingViewModelService.GetBrewingViewModel();   
+    }
+
+    public void Refresh()
+    {
+        StateHasChanged();
+    }
+
+    public async Task Save()
+    {
+        if (_viewModel == null) return;
+        await BrewingViewModelService.SaveViewModel(_viewModel);
+    }
+
+    public void AddItem()
+    {
+        if (_viewModel?.SelectedRecipe == null) return;
+
+        _viewModel?.SelectedRecipe.BrewingSteps.Add(new BrewingStep { Id = Guid.NewGuid(), BrewingRecipeId = _viewModel.SelectedRecipe.Id, Position = (_viewModel.SelectedRecipe.BrewingSteps.Count + 1) });
+        Refresh();
+    }
+
+    public void StartBrewing()
+    {
+        _isBrewingStarted = true;
+    }
+
+    public void StopBrewing()
+    {
+        _isBrewingStarted = false;
+    }
+}
