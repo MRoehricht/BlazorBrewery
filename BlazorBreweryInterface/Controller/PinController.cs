@@ -8,7 +8,6 @@ namespace BlazorBreweryInterface.Controller
         private int _pinId;
         private bool _isOn;
 
-
         public bool IsOn { get => _isOn; }
 
         public void Shift(bool isOn, int pinId)
@@ -23,5 +22,10 @@ namespace BlazorBreweryInterface.Controller
         public void Shift(int pinId) => Shift(!_isOn, pinId);
 
         public void Dispose() => Shift(false, _pinId);
+
+        public void SetPinId(int pinId)
+        {
+            _pinId = pinId;
+        }
     }
 }

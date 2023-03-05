@@ -9,5 +9,7 @@
         public int DurationSeconds { get; set; }
         public double TargetTemperature { get; set; }
         public BrewingStepTyp Typ { get; set; }
+        public Guid? PumpintervalId { get; set; }
+        public Pumpinterval? Pumpinterval { get; set; }
     }
 }

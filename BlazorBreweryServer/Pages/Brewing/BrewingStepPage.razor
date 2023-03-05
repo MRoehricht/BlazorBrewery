@@ -1,27 +1,40 @@
 ﻿@page "/brewingStep"
+@using BlazorBrewery.Core.Common;
 @using BlazorBrewery.Core.Models.Brewing;
+@using BlazorBrewery.Database.Interfaces.Repositories;
+@inject ISnackbar Snackbar
+@inject IRecipeRepository RecipeRepository;
 
 @if (BrewingStep != null)
 {
     <MudItem Class="mx-12 my-4">
         <MudPaper Class="pa-3">
-            <div class="d-flex gap-2">           
-            <MudButtonGroup Class="order-0" Color="Color.Primary" Size="Size.Small" Variant="Variant.Outlined">
-                <MudIconButton ReadOnly="IsReadOnly" Icon="@Icons.Material.Filled.ArrowDropUp" Variant="Variant.Outlined" Size="Size.Small" OnClick="PositionUp"></MudIconButton>
-                <MudIconButton ReadOnly="IsReadOnly" Icon="@Icons.Material.Filled.ArrowDropDown" Variant="Variant.Outlined" Size="Size.Small" OnClick="PositionDown"></MudIconButton>
-            </MudButtonGroup>
-                <MudIconButton ReadOnly="IsReadOnly" Class="order-1 d-flex flex-row-reverse" Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Primary" Size="Size.Small" Variant="Variant.Outlined" OnClick="DeleteItem"></MudIconButton>
-            </div>
+            @if (!IsReadOnly)
+            {
+                <div class="d-flex gap-2">           
+                    <MudButtonGroup Class="order-0" Color="Color.Primary" Size="Size.Small" Variant="Variant.Outlined">
+                        <MudTooltip Text="nach oben">
+                            <MudIconButton Icon="@Icons.Material.Filled.ArrowDropUp" Variant="Variant.Outlined" Size="Size.Small" OnClick="PositionUp"></MudIconButton>
+                        </MudTooltip>
+                        <MudTooltip Text="nach unten">
+                            <MudIconButton Icon="@Icons.Material.Filled.ArrowDropDown" Variant="Variant.Outlined" Size="Size.Small" OnClick="PositionDown"></MudIconButton>
+                        </MudTooltip>
+                    </MudButtonGroup>
+                    <MudTooltip Text="löschen">
+                        <MudIconButton Class="order-1 d-flex flex-row-reverse" Icon="@Icons.Material.Filled.DeleteForever" Color="Color.Primary" Size="Size.Small" Variant="Variant.Outlined" OnClick="DeleteItem"></MudIconButton>
+                    </MudTooltip>
+                </div>
+            }
         <MudForm>
             <MudGrid>
             <MudItem xs="1">
                 <MudTextField T="int" ReadOnly="true" Label="Position" @bind-Value="BrewingStep.Position" />
             </MudItem>
-                <MudItem xs="4">
+                <MudItem xs="2">
                     <MudTextField T="string" ReadOnly="IsReadOnly" Label="Name" @bind-Value="BrewingStep.Name" RequiredError="Name erforderlich" />
                 </MudItem>
                 <MudItem xs="2">
-                @if (BrewingStep.Typ == BrewingStepTyp.HoldTemperature || BrewingStep.Typ == BrewingStepTyp.Waiting)
+                @if (BrewingStep.Typ == BrewingStepTyp.HoldTemperature)
                 {
                     <MudTextField T="int" ReadOnly="IsReadOnly" Label="Dauer (Minuten)" @bind-Value="BrewingStep.DurationSeconds" RequiredError="Dauer erforderlich" />
                 }
@@ -32,14 +45,25 @@
                     <MudTextField T="double" ReadOnly="IsReadOnly" Label="Temperatur (°C)" @bind-Value="BrewingStep.TargetTemperature" RequiredError="Temperatur erforderlich" />
                 }
                 </MudItem>
-                <MudItem xs="3">
+                <MudItem xs="2">
                         <MudSelect @bind-Value="BrewingStep.Typ" ReadOnly="IsReadOnly" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
                         @foreach (BrewingStepTyp item in Enum.GetValues(typeof(BrewingStepTyp)))
                         {
-                            <MudSelectItem Value="@item">@item</MudSelectItem>
+                                <MudSelectItem Value="@item">@item.GetDisplayName()</MudSelectItem>
                         }
                     </MudSelect>
-                </MudItem>                   
+                </MudItem>    
+                @if (_pumpintervals != null)
+                {
+                    <MudItem xs="3">
+                            <MudSelect @bind-Value="BrewingStep.Pumpinterval" ReadOnly="IsReadOnly" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
+                                @foreach (var pumpinterval in _pumpintervals)
+                            {
+                                    <MudSelectItem Value="@pumpinterval">@pumpinterval.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                }               
             </MudGrid>
             </MudForm>
         </MudPaper>
@@ -61,6 +85,13 @@
     [Parameter]
     public Action Refresh { get; set; }
 
+    private List<Pumpinterval> _pumpintervals;
+
+    protected override async Task OnInitializedAsync()
+    {     
+        _pumpintervals = await RecipeRepository.GetAllPumpintervals();
+    }
+
     public void DeleteItem()
     {
         if (BrewingStep == null || SelectedRecipe == null || IsReadOnly) return;
@@ -73,7 +104,7 @@
         {
             brewingStep.Position--;
         }
-        
+        Snackbar.Add($"{BrewingStep.Name} wurde gelöscht", Severity.Normal);
         
         SelectedRecipe.BrewingSteps.Remove(item);
         Refresh();

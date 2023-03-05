@@ -1,0 +1,74 @@
+﻿@page "/TemperatureComponent"
+
+@using BlazorBrewery.BrewComputer.Manager;
+@using System.Threading;
+@using BlazorBrewery.Core.Models.Brewing;
+@inject ITemperatureManager TemperatureManager;
+@inject IRelayManager RelayManager;
+@if (!string.IsNullOrEmpty(_currentTemperature))
+{
+    <MudPaper Outlined="true" Class="pa-3 ma-2">
+        <MudStack Justify="Justify.FlexStart" Row="true">
+            <MudField Label="Temperatur" Variant="Variant.Outlined">
+                <MudTextField @bind-Value="_currentTemperature" ReadOnly="true" Variant="Variant.Text" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.DeviceThermostat" />
+            </MudField>           
+            <MudField Label="Heizung" Variant="Variant.Outlined">
+                <MudButtonGroup OverrideStyles="false">
+                    <MudButton Color="Color.Success" Variant="@_autoVariant" OnClick="AutoClicked">Auto</MudButton>
+                    <MudButton Color="Color.Primary" Variant="@_onVariant" OnClick="OnClicked">On</MudButton>
+                    <MudButton Color="Color.Primary" Variant="@_offVariant" OnClick="OffClicked">Off</MudButton>
+                </MudButtonGroup>
+            </MudField>
+            <PumpComponent></PumpComponent>
+        </MudStack>
+    </MudPaper>
+}
+
+@code {
+    private string? _currentTemperature;
+    private Variant _autoVariant = Variant.Filled;
+    private Variant _onVariant = Variant.Outlined;
+    private Variant _offVariant = Variant.Outlined;
+
+    protected override void OnInitialized()
+    {
+        StartCountdown();
+    }
+
+    protected void AutoClicked()
+    {
+        _autoVariant = Variant.Filled;
+        _onVariant = Variant.Outlined;
+        _offVariant = Variant.Outlined;
+        RelayManager.SetPinMode(TemperatureManager.PinId, ManagerMode.Auto);
+    }
+
+    protected void OnClicked()
+    {
+        _autoVariant = Variant.Outlined;
+        _onVariant = Variant.Filled;
+        _offVariant = Variant.Outlined;
+        RelayManager.SetPinMode(TemperatureManager.PinId, ManagerMode.On);
+    }
+
+    protected void OffClicked()
+    {
+        _autoVariant = Variant.Outlined;
+        _onVariant = Variant.Outlined;
+        _offVariant = Variant.Filled;        
+        RelayManager.SetPinMode(TemperatureManager.PinId, ManagerMode.Off);
+    }
+
+    private void StartCountdown()
+    {
+        var timer = new Timer(new TimerCallback(_ =>
+        {            
+            InvokeAsync(async () =>{
+                var _currentTemperatureDouble = await TemperatureManager.GetCurrentTemperature();
+                _currentTemperature = _currentTemperatureDouble.ToString("N2") + " °C";
+                StateHasChanged();
+            });
+            
+        }), null, 1000, 1000);
+    }
+}

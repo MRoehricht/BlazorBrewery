@@ -1,4 +1,7 @@
-﻿using BlazorBrewery.Database.Interfaces.Repositories;
+﻿using BlazorBrewery.BrewComputer.Interfaces.Brewing;
+using BlazorBrewery.BrewComputer.Manager;
+using BlazorBrewery.BrewComputer.Services.Brewing;
+using BlazorBrewery.Database.Interfaces.Repositories;
 using BlazorBrewery.Database.Repositories;
 using BlazorBreweryInterface.Controller;
 using BlazorBreweryInterface.Fake.Controller;
@@ -32,12 +35,18 @@ namespace BlazorBreweryServer
 
 
             services.AddScoped<IRecipeRepository, RecipeRepository>();
+            services.AddScoped<IConfigRepository, ConfigRepository>();
 
 
             services.AddScoped<IRecipesViewModelService, RecipesViewModelService>();
             services.AddScoped<ISettingsViewModelService, SettingsViewModelService>();
             services.AddScoped<IBrewingStepViewModelService, BrewingStepViewModelService>();
             services.AddScoped<IBrewingViewModelService, BrewingViewModelService>();
+            services.AddScoped<ITemperatureManager, TemperatureManager>();
+            services.AddScoped<IPumpManager, PumpManager>();
+            services.AddSingleton<IRelayManager, RelayManager>();
+
+            services.AddScoped<IStepBrewService, StepBrewService>();
         }
     }
 }

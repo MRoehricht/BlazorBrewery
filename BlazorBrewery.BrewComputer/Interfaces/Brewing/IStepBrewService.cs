@@ -3,8 +3,10 @@ using BlazorBrewery.Core.Models.Processes;
 
 namespace BlazorBrewery.BrewComputer.Interfaces.Brewing
 {
-    public interface IStepService
+    public interface IStepBrewService
     {
-        void Run(BrewingStep brewingStep, IStepProcessesUpdater updater, CancellationToken cancellationToken);
+        void Run(BrewingStep brewingStep, IStepProcessesUpdater updater);
+
+        void Stop();
     }
 }

@@ -84,6 +84,7 @@ namespace BlazorBrewery.Database.Repositories
                     dbStep.Position = step.Position;
                     dbStep.TargetTemperature = step.TargetTemperature;
                     dbStep.Typ = step.Typ;
+                    dbStep.PumpIntervalId = step.Pumpinterval?.Id ?? step.PumpintervalId;
                 }
                 else
                 {
@@ -95,7 +96,8 @@ namespace BlazorBrewery.Database.Repositories
                         Position = step.Position,
                         RecipeId = entity.Id,
                         TargetTemperature = step.TargetTemperature,
-                        Typ = step.Typ
+                        Typ = step.Typ,
+                        PumpIntervalId = step.Pumpinterval?.Id ?? step.PumpintervalId
                     });
                 }
             }
@@ -152,7 +154,17 @@ namespace BlazorBrewery.Database.Repositories
         private BrewingStep Parse(StepEntity entity)
         {
             if (entity == null) return null;
-            return new BrewingStep { Id = entity.Id, Name = entity.Name, BrewingRecipeId = entity.RecipeId, DurationSeconds = entity.DurationSeconds, Position = entity.Position, TargetTemperature = entity.TargetTemperature, Typ = entity.Typ };
+            Pumpinterval pumpinterval = null;
+            if (entity.PumpIntervalId != null)
+            {
+                var interval = _recipeContext.PumpIntervals.Find(entity.PumpIntervalId);
+                if (interval != null)
+                {
+                    pumpinterval = Parse(interval);
+                }
+            }
+
+            return new BrewingStep { Id = entity.Id, Name = entity.Name, BrewingRecipeId = entity.RecipeId, DurationSeconds = entity.DurationSeconds, Position = entity.Position, TargetTemperature = entity.TargetTemperature, Typ = entity.Typ, PumpintervalId = entity.PumpIntervalId, Pumpinterval = pumpinterval };
         }
 
         public async Task<List<Unit>> GetUnits()
@@ -182,6 +194,29 @@ namespace BlazorBrewery.Database.Repositories
                 Name = entity.Name,
                 TargetTemperature = entity.TargetTemperature,
                 Typ = entity.Typ
+            };
+        }
+
+        public async Task<List<Pumpinterval>> GetAllPumpintervals()
+        {
+            var list = await _recipeContext.PumpIntervals.ToListAsync();
+            List<Pumpinterval> output = new List<Pumpinterval>();
+            foreach (var interval in list)
+            {
+                output.Add(Parse(interval));
+            }
+
+            return output;
+        }
+
+        public Pumpinterval Parse(PumpIntervalEntity entity)
+        {
+            return new Pumpinterval
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                PausetimeSeconds = entity.PausetimeSeconds,
+                RuntimeSeconds = entity.RuntimeSeconds
             };
         }
     }

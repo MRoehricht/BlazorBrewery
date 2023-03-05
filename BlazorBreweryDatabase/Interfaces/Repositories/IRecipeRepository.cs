@@ -12,5 +12,6 @@ namespace BlazorBrewery.Database.Interfaces.Repositories
         Task<BrewingRecipe> Save(BrewingRecipe brewingRecipe);
         Task<List<Unit>> GetUnits();
         Task<BrewingStep?> GetBrewingStep(Guid id);
+        Task<List<Pumpinterval>> GetAllPumpintervals();
     }
 }

@@ -53,3 +53,28 @@ INSERT INTO `blazorbrewery`.`units` (`Id`, `Name`) VALUES ('8A45E83F-C871-4AC3-A
 INSERT INTO `blazorbrewery`.`units` (`Id`, `Name`) VALUES ('A2B6351B-CEF6-4724-B7DC-B18EC1CABCDA', 'g');
 
 
+CREATE TABLE `blazorbrewery`.`pumpintervals` (
+  `Id` CHAR(36) NOT NULL,
+  `Name` VARCHAR(100) NULL,
+  `RuntimeSeconds` INT NULL,
+  `PausetimeSeconds` INT NULL,
+  PRIMARY KEY (`Id`));
+  
+ALTER TABLE `blazorbrewery`.`steps` 
+ADD COLUMN `PumpIntervalId` CHAR(36) NULL DEFAULT NULL AFTER `Typ`;
+
+
+INSERT INTO `blazorbrewery`.`pumpintervals`(`Id`,`Name`,`RuntimeSeconds`,`PausetimeSeconds`)VALUES('23B6CF17-DED0-4A9E-85C0-997CD2184C51', 'Nicht pumpen', 0, 0);
+INSERT INTO `blazorbrewery`.`pumpintervals`(`Id`,`Name`,`RuntimeSeconds`,`PausetimeSeconds`)VALUES('070D49E9-EE82-4628-A0C4-9B05C8519E21', '120/45', 120, 45);
+INSERT INTO `blazorbrewery`.`pumpintervals`(`Id`,`Name`,`RuntimeSeconds`,`PausetimeSeconds`)VALUES('508C3859-9BC2-4F9C-8F7D-4AB2ABA29256', 'Pumpen', 60, 0);
+
+CREATE TABLE `blazorbrewery`.`configurationitems` (
+  `Id` CHAR(36) NOT NULL,
+  `Name` VARCHAR(100) NULL,
+  `Description` VARCHAR(100) NULL,
+  `Value` VARCHAR(100) NULL,
+  PRIMARY KEY (`Id`));
+  
+  
+INSERT INTO `blazorbrewery`.`configurationitems`(`Id`,`Name`,`Description`,`Value`)VALUES('1F880692-CF24-466A-A99A-613AF1319E15', 'Pump_Pin_Id', 'Pin Id der Pumpe', '14');
+INSERT INTO `blazorbrewery`.`configurationitems`(`Id`,`Name`,`Description`,`Value`)VALUES('494124A1-C16E-403D-8B1C-A2DC30236CAD', 'Heating_Pin_Id', 'Pin Id der Heizung', '15');

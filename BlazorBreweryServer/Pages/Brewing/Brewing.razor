@@ -1,9 +1,13 @@
 ﻿@page "/Brewing"
+@using BlazorBrewery.BrewComputer.Interfaces.Brewing;
 @using BlazorBrewery.Core.Models.Brewing;
+@using BlazorBrewery.Core.Models.Processes;
 @using BlazorBreweryServer.Services.Interfaces.ViewModels.Brewing;
 @using BlazorBreweryServer.ViewModels.Brewing;
 @using BlazorBreweryServer.ViewModels.Recipes;
 @inject IBrewingViewModelService BrewingViewModelService;
+@inject ISnackbar Snackbar
+@inject IStepBrewService StepBrewService;
 
 <PageTitle>Brauen</PageTitle>
 
@@ -17,33 +21,38 @@
             <MudSelectItem Value="@item">@item.Name</MudSelectItem>
         }
     </MudSelect>
+    <br/>
+    <MudStack Justify="Justify.SpaceEvenly" Row="true">
+        <TemperatureComponent/>        
+    </MudStack>
 
     @if (_viewModel.SelectedRecipe != null)
     {
         @if (!_isBrewingStarted)
         {
-            <MudIconButton Icon="@Icons.Material.Filled.PlaylistAdd" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="AddItem"></MudIconButton>
-            <MudIconButton Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="Save"></MudIconButton>        
-            <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="StartBrewing"></MudIconButton>
+            <MudTooltip Text="Schritt hinzufügen">
+                <MudIconButton Icon="@Icons.Material.Filled.PlaylistAdd" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="AddItem"></MudIconButton>
+            </MudTooltip>
+            <MudTooltip Text="Rezept speichern"> 
+                <MudIconButton Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="Save"></MudIconButton>
+            </MudTooltip>
+            <MudTooltip Text="Brauen beginnen"> 
+               <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Large" OnClick="StartBrewing"></MudIconButton>
+            </MudTooltip>
         }        
         @if (_isBrewingStarted)
         {
-            <MudIconButton Icon="@Icons.Material.Filled.Stop" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="StopBrewing"></MudIconButton>
+            <MudTooltip Text="Brauen stoppen"> 
+                <MudIconButton Icon="@Icons.Material.Filled.Stop" Variant="Variant.Outlined" Color="Color.Error" Size="Size.Large" OnClick="StopBrewing"></MudIconButton>
+            </MudTooltip>
         }
-      
-        
 
         @foreach (BrewingStep step in _viewModel.SelectedRecipe.BrewingSteps.OrderBy(_ => _.Position))
         {
             <BrewingStepPage BrewingStep="step" IsReadOnly="_isBrewingStarted" SelectedRecipe="_viewModel.SelectedRecipe" Refresh="Refresh" />
         }
     }
-
-   
 }
-
-
-
 
 
 @code {
@@ -76,11 +85,19 @@
 
     public void StartBrewing()
     {
+        if (_viewModel?.SelectedRecipe == null) return;
+        StepBrewService.Run(_viewModel.SelectedRecipe.BrewingSteps.OrderBy(_ => _.Position).First(), new StepProcessesUpdater());
+        Snackbar.Add($"Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde gestartet.", Severity.Success);
         _isBrewingStarted = true;
     }
 
     public void StopBrewing()
     {
+        if (_viewModel?.SelectedRecipe == null) return;
+
+        StepBrewService.Stop();
+
+        Snackbar.Add($"Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde gestoppt.", Severity.Error);
         _isBrewingStarted = false;
     }
 }

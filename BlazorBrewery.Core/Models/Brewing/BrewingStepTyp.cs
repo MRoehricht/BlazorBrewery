@@ -1,11 +1,16 @@
-﻿namespace BlazorBrewery.Core.Models.Brewing
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BlazorBrewery.Core.Models.Brewing
 {
     public enum BrewingStepTyp
     {
+        [Display(Name = "Manuell")]
         Manually,
+        [Display(Name = "Heizen")]
         Heat,
+        [Display(Name = "Halten")]
         HoldTemperature,
-        CoolDown,
-        Waiting
+        [Display(Name = "Abkühlen")]
+        CoolDown
     }
 }

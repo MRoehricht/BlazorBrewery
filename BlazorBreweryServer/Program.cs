@@ -3,6 +3,7 @@ using BlazorBreweryDatabase.Context;
 using BlazorBreweryServer;
 using BlazorBreweryServer.Data;
 using Microsoft.EntityFrameworkCore;
+using MudBlazor;
 using MudBlazor.Services;
 
 
@@ -15,12 +16,26 @@ var config = new ConfigurationBuilder().AddJsonFile("appsettings.json", optional
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
-builder.Services.AddMudServices();
+//builder.Services.AddMudServices();
 builder.Services.AddServiceDependencies();
+
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
+
+    config.SnackbarConfiguration.PreventDuplicates = false;
+    config.SnackbarConfiguration.NewestOnTop = false;
+    config.SnackbarConfiguration.ShowCloseIcon = true;
+    config.SnackbarConfiguration.VisibleStateDuration = 10000;
+    config.SnackbarConfiguration.HideTransitionDuration = 500;
+    config.SnackbarConfiguration.ShowTransitionDuration = 500;
+    config.SnackbarConfiguration.SnackbarVariant = Variant.Filled;
+});
 
 var connection = config["ConnectionStrings:DefaultConnection"];
 builder.Services.AddDbContext<UserContext>(options => options.UseMySQL(connection));
 builder.Services.AddDbContext<RecipeContext>(options => options.UseMySQL(connection));
+builder.Services.AddDbContext<ConfigContext>(options => options.UseMySQL(connection));
 
 
 

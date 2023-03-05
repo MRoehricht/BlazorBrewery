@@ -1,20 +1,22 @@
-﻿using BlazorBrewery.BrewComputer.Interfaces.Brewing;
-using BlazorBrewery.Core.Models.Brewing;
+﻿using BlazorBrewery.Core.Models.Brewing;
 using BlazorBrewery.Core.Models.Processes;
 
 namespace BlazorBrewery.BrewComputer.Services.Brewing
 {
-    public class RecipeService
+    public class RecipeBrewService
     {
-        private readonly IStepService _stepService;
+        private readonly Interfaces.Brewing.IStepBrewService _stepService;
 
-        public RecipeService(IStepService stepService) => _stepService = stepService;
+        public RecipeBrewService(Interfaces.Brewing.IStepBrewService stepService) => _stepService = stepService;
 
         public void Run(BrewingRecipe brewingRecipe, IStepProcessesUpdater updater, CancellationToken cancellationToken)
         {
             foreach (var step in brewingRecipe.BrewingSteps)
             {
-                _stepService.Run(step, updater, cancellationToken);
+
+
+
+                _stepService.Run(step, updater);
             }
         }
     }

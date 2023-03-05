@@ -18,7 +18,8 @@ namespace BlazorBrewery.Database.Entities
         public int DurationSeconds { get; set; }
         public double TargetTemperature { get; set; }
         public BrewingStepTyp Typ { get; set; }
-
+        public Guid? PumpIntervalId { get; set; }
+        public virtual PumpIntervalEntity? PumpInterval { get; set; }
         public virtual RecipeEntity? Recipe { get; set; }
     }
 }

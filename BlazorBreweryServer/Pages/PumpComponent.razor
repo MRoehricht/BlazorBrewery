@@ -1,0 +1,51 @@
+﻿@page "/PumpComponent"
+
+@using BlazorBrewery.BrewComputer.Manager;
+@using System.Threading;
+@using BlazorBrewery.Core.Models.Brewing;
+@inject IPumpManager PumpManager;
+@inject IRelayManager RelayManager;
+
+
+    <MudStack Justify="Justify.FlexStart" Row="true">
+        <MudField Label="Pumpe" Variant="Variant.Outlined">
+            <MudButtonGroup OverrideStyles="false">
+                <MudButton Color="Color.Success" Variant="@_autoVariant" OnClick="AutoClicked">Auto</MudButton>
+                <MudButton Color="Color.Primary" Variant="@_onVariant" OnClick="OnClicked">On</MudButton>
+                <MudButton Color="Color.Primary" Variant="@_offVariant" OnClick="OffClicked">Off</MudButton>
+            </MudButtonGroup>
+        </MudField>
+    </MudStack>
+
+
+
+@code {
+   
+    private Variant _autoVariant = Variant.Filled;
+    private Variant _onVariant = Variant.Outlined;
+    private Variant _offVariant = Variant.Outlined;  
+
+    protected void AutoClicked()
+    {
+        _autoVariant = Variant.Filled;
+        _onVariant = Variant.Outlined;
+        _offVariant = Variant.Outlined;
+        RelayManager.SetPinMode(PumpManager.PinId, ManagerMode.Auto);
+    }
+
+    protected void OnClicked()
+    {
+        _autoVariant = Variant.Outlined;
+        _onVariant = Variant.Filled;
+        _offVariant = Variant.Outlined;
+        RelayManager.SetPinMode(PumpManager.PinId, ManagerMode.On);
+    }
+
+    protected void OffClicked()
+    {
+        _autoVariant = Variant.Outlined;
+        _onVariant = Variant.Outlined;
+        _offVariant = Variant.Filled;        
+        RelayManager.SetPinMode(PumpManager.PinId, ManagerMode.Off);
+    }    
+}
