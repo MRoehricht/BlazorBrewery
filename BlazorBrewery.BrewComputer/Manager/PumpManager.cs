@@ -1,7 +1,10 @@
 ﻿using BlazorBrewery.Core.Common;
 using BlazorBrewery.Core.Models.Brewing;
 using BlazorBrewery.Database.Interfaces.Repositories;
+using BlazorBreweryInterface.Controller;
+using BlazorBreweryInterface.Fake.Controller;
 using BlazorBreweryInterface.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace BlazorBrewery.BrewComputer.Manager
 {
@@ -10,10 +13,12 @@ namespace BlazorBrewery.BrewComputer.Manager
         private readonly IPinController _pumpPinController;
         private readonly IConfigRepository _configRepository;
         private readonly IRelayManager _relayManager;
+        private readonly ILogger<PumpManager> _logger;
         private static Timer _timer;
         private bool _pumpIsRunning;
         private readonly int _pumpPinId = -1;
         private Pumpinterval _pumpinterval;
+        private bool _isRunning = false;
 
         private ManagerMode _managerMode = ManagerMode.Auto;
         public ManagerMode ManagerMode
@@ -31,18 +36,28 @@ namespace BlazorBrewery.BrewComputer.Manager
 
         public int PinId => _pumpPinId;
 
-        public PumpManager(IPinController heatingPinController, IConfigRepository configRepository, IRelayManager relayManager)
+        public PumpManager(IConfigRepository configRepository, IRelayManager relayManager, ILogger<PumpManager> logger)
         {
-
-            _pumpPinController = heatingPinController;
             _configRepository = configRepository;
             _relayManager = relayManager;
-
+            _logger = logger;
 
             _pumpPinId = _configRepository.GetPumpPinId();
             if (_pumpPinId != -1)
             {
-                _pumpPinController.SetPinId(_pumpPinId);
+                var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                if (env != null && env == "Development")
+                {
+                    _pumpPinController = new FakePinController(_pumpPinId);
+                }
+                else
+                {
+                    _pumpPinController = new PinController(_pumpPinId);
+                }
+            }
+            else
+            {
+                throw new ApplicationException("PumpPinId is not set in Database!");
             }
             relayManager.Register(this);
         }
@@ -50,7 +65,7 @@ namespace BlazorBrewery.BrewComputer.Manager
         public void Work(Pumpinterval pumpinterval, BrewingStepTyp brewingStepTyp)
         {
             if (_pumpPinId == -1 || brewingStepTyp == BrewingStepTyp.Manually || ManagerMode != ManagerMode.Auto || pumpinterval == null) return;
-
+            _isRunning = true;
             _pumpinterval = pumpinterval;
             if (pumpinterval.PausetimeSeconds == 0 && pumpinterval.RuntimeSeconds > 0)
             {
@@ -69,18 +84,36 @@ namespace BlazorBrewery.BrewComputer.Manager
 
         public void StopWork()
         {
+            _isRunning = false;
             if (_timer != null)
                 _timer.Dispose();
-            TurnOff();
+
+            if (ManagerMode == ManagerMode.Auto)
+            {
+                TurnOff();
+            }
         }
 
         public void StartTimer()
         {
-            if (_pumpinterval == null)
+            if (_pumpinterval == null || _isRunning == false)
             {
                 TurnOff();
                 return;
             }
+
+            if (_pumpinterval.PausetimeSeconds == 0 && _pumpinterval.RuntimeSeconds > 0)
+            {
+                TurnOn();
+                return;
+            }
+
+            if (_pumpinterval.RuntimeSeconds == 0)
+            {
+                TurnOff();
+                return;
+            }
+
 
             _timer = new Timer(
                callback: new TimerCallback(TimerCallbackTask),
@@ -130,16 +163,20 @@ namespace BlazorBrewery.BrewComputer.Manager
 
         private void TurnOn()
         {
+            if (_pumpPinController.IsOn) return;
             _pumpIsRunning = Constants.ON;
-            _pumpPinController.Shift(Constants.ON, _pumpPinId);
+            _pumpPinController.Shift(Constants.ON);
             _relayManager.SetPinState(_pumpPinId, Constants.ON);
+            _logger.LogInformation($"{DateTime.Now.ToLongTimeString()} - Pumpe AN");
         }
 
         private void TurnOff()
         {
+            if (!_pumpPinController.IsOn) return;
             _pumpIsRunning = Constants.OFF;
-            _pumpPinController.Shift(Constants.OFF, _pumpPinId);
+            _pumpPinController.Shift(Constants.OFF);
             _relayManager.SetPinState(_pumpPinId, Constants.OFF);
+            _logger.LogInformation($"{DateTime.Now.ToLongTimeString()} - Pumpe AUS");
 
         }
 
@@ -151,7 +188,7 @@ namespace BlazorBrewery.BrewComputer.Manager
         public void ModeChanged(int pinId, ManagerMode managerMode)
         {
             if (pinId != _pumpPinId || pinId == -1) return;
-            SwitchMode(managerMode);
+            ManagerMode = managerMode;
         }
     }
 }

@@ -80,11 +80,12 @@ namespace BlazorBrewery.Database.Repositories
                 {
                     dbStep.Name = step.Name;
                     dbStep.RecipeId = entity.Id;
-                    dbStep.DurationSeconds = step.DurationSeconds;
+                    dbStep.DurationSeconds = step.Typ == BrewingStepTyp.HoldTemperature ? step.DurationMinutes * 60 : 0;
                     dbStep.Position = step.Position;
-                    dbStep.TargetTemperature = step.TargetTemperature;
+                    dbStep.TargetTemperature = step.Typ == BrewingStepTyp.HoldTemperature || step.Typ == BrewingStepTyp.Heat ? step.TargetTemperature : 0;
                     dbStep.Typ = step.Typ;
                     dbStep.PumpIntervalId = step.Pumpinterval?.Id ?? step.PumpintervalId;
+                    dbStep.Acknowledge = step.Acknowledge;
                 }
                 else
                 {
@@ -92,12 +93,13 @@ namespace BlazorBrewery.Database.Repositories
                     {
                         Id = step.Id,
                         Name = step.Name,
-                        DurationSeconds = step.DurationSeconds,
+                        DurationSeconds = step.Typ == BrewingStepTyp.HoldTemperature ? step.DurationMinutes * 60 : 0,
                         Position = step.Position,
                         RecipeId = entity.Id,
-                        TargetTemperature = step.TargetTemperature,
+                        TargetTemperature = step.Typ == BrewingStepTyp.HoldTemperature || step.Typ == BrewingStepTyp.Heat ? step.TargetTemperature : 0,
                         Typ = step.Typ,
-                        PumpIntervalId = step.Pumpinterval?.Id ?? step.PumpintervalId
+                        PumpIntervalId = step.Pumpinterval?.Id ?? step.PumpintervalId,
+                        Acknowledge = step.Acknowledge
                     });
                 }
             }
@@ -164,7 +166,7 @@ namespace BlazorBrewery.Database.Repositories
                 }
             }
 
-            return new BrewingStep { Id = entity.Id, Name = entity.Name, BrewingRecipeId = entity.RecipeId, DurationSeconds = entity.DurationSeconds, Position = entity.Position, TargetTemperature = entity.TargetTemperature, Typ = entity.Typ, PumpintervalId = entity.PumpIntervalId, Pumpinterval = pumpinterval };
+            return new BrewingStep { Id = entity.Id, Name = entity.Name, BrewingRecipeId = entity.RecipeId, DurationMinutes = (entity.DurationSeconds / 60), Position = entity.Position, TargetTemperature = entity.TargetTemperature, Typ = entity.Typ, PumpintervalId = entity.PumpIntervalId, Pumpinterval = pumpinterval, Acknowledge = entity.Acknowledge };
         }
 
         public async Task<List<Unit>> GetUnits()
@@ -185,16 +187,7 @@ namespace BlazorBrewery.Database.Repositories
 
             if (entity == null) return null;
 
-            return new BrewingStep
-            {
-                Id = id,
-                BrewingRecipeId = entity.RecipeId,
-                DurationSeconds = entity.DurationSeconds,
-                Position = entity.Position,
-                Name = entity.Name,
-                TargetTemperature = entity.TargetTemperature,
-                Typ = entity.Typ
-            };
+            return Parse(entity);
         }
 
         public async Task<List<Pumpinterval>> GetAllPumpintervals()

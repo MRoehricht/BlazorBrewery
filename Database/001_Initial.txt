@@ -78,3 +78,6 @@ CREATE TABLE `blazorbrewery`.`configurationitems` (
   
 INSERT INTO `blazorbrewery`.`configurationitems`(`Id`,`Name`,`Description`,`Value`)VALUES('1F880692-CF24-466A-A99A-613AF1319E15', 'Pump_Pin_Id', 'Pin Id der Pumpe', '14');
 INSERT INTO `blazorbrewery`.`configurationitems`(`Id`,`Name`,`Description`,`Value`)VALUES('494124A1-C16E-403D-8B1C-A2DC30236CAD', 'Heating_Pin_Id', 'Pin Id der Heizung', '15');
+
+ALTER TABLE `blazorbrewery`.`steps` 
+ADD COLUMN `Acknowledge` TINYINT NULL DEFAULT 0 AFTER `PumpIntervalId`;

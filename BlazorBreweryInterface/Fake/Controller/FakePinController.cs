@@ -6,38 +6,35 @@ namespace BlazorBreweryInterface.Fake.Controller
 {
     public class FakePinController : IPinController
     {
-        private int _pinId;
+        private readonly int _pinId;
         private bool _isOn;
         public bool IsOn { get => _isOn; }
 
-
-        public void Shift(bool isOn, int pinId)
+        public FakePinController(int pinId)
         {
-            _isOn = isOn;
             _pinId = pinId;
+        }
+
+        public void Shift(bool isOn)
+        {
+            if (isOn == _isOn) return;
+            _isOn = isOn;
             string pinValue = isOn ? PinValue.High.ToString() : PinValue.Low.ToString();
 
             var status = _isOn ? "AN" : "AUS";
 
             if (_pinId == 14)
             {
-                Trace.WriteLine($"{DateTime.Now.ToLongTimeString()} Pumpe   {status}");
+                Trace.WriteLine($"{DateTime.Now.ToLongTimeString()} Pumpe   {status} - {pinValue}");
             }
             if (_pinId == 15)
             {
-                Trace.WriteLine($"{DateTime.Now.ToLongTimeString()} Heizung {status}");
+                Trace.WriteLine($"{DateTime.Now.ToLongTimeString()} Heizung {status} - {pinValue}");
             }
-
-
         }
 
-        public void Shift(int pinId) => Shift(!_isOn, pinId);
-        public void Dispose() => Shift(false, _pinId);
-
-        public void SetPinId(int pinId)
-        {
-            _pinId = pinId;
-        }
+        public void Shift() => Shift(!_isOn);
+        public void Dispose() => Shift(false);
     }
 }
 

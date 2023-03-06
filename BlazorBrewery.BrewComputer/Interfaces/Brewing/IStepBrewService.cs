@@ -8,5 +8,7 @@ namespace BlazorBrewery.BrewComputer.Interfaces.Brewing
         void Run(BrewingStep brewingStep, IStepProcessesUpdater updater);
 
         void Stop();
+
+        Action WorkIsDone { get; set; }
     }
 }

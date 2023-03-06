@@ -10,7 +10,7 @@ namespace BlazorBrewery.Core.Models.Brewing
         Heat,
         [Display(Name = "Halten")]
         HoldTemperature,
-        [Display(Name = "Abkühlen")]
-        CoolDown
+        //[Display(Name = "Abkühlen")]
+        //CoolDown
     }
 }

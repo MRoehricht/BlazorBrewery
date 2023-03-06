@@ -8,7 +8,7 @@ namespace BlazorBrewery.BrewComputer.Manager
 
         ManagerMode ManagerMode { get; set; }
 
-        void Work(double targetTemperature, int durationSeconds, BrewingStepTyp brewingStepTyp);
+        void Work(double targetTemperature, int durationMinutes, BrewingStepTyp brewingStepTyp);
 
         Task<double> GetCurrentTemperature();
 

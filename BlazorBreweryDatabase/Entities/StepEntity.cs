@@ -21,5 +21,6 @@ namespace BlazorBrewery.Database.Entities
         public Guid? PumpIntervalId { get; set; }
         public virtual PumpIntervalEntity? PumpInterval { get; set; }
         public virtual RecipeEntity? Recipe { get; set; }
+        public bool Acknowledge { get; set; }
     }
 }

@@ -10,27 +10,27 @@ namespace BlazorBreweryInterface.Test.Controller
         [SetUp]
         public void Setup()
         {
-            _pinController = new FakePinController();
+            _pinController = new FakePinController(1);
         }
 
         [Test]
         public void IsOnTest()
         {
             Assert.That(_pinController.IsOn, Is.False);
-            _pinController.Shift(true, 1);
+            _pinController.Shift(true);
             Assert.That(_pinController.IsOn, Is.True);
-            _pinController.Shift(1);
+            _pinController.Shift();
             Assert.That(_pinController.IsOn, Is.False);
-            _pinController.Shift(1);
+            _pinController.Shift();
             Assert.That(_pinController.IsOn, Is.True);
-            _pinController.Shift(false, 1);
+            _pinController.Shift(false);
             Assert.That(_pinController.IsOn, Is.False);
         }
 
         [Test]
         public void DisposeTest()
         {
-            _pinController.Shift(true, 1);
+            _pinController.Shift(true);
             _pinController.Dispose();
             Assert.That(_pinController.IsOn, Is.False);
         }

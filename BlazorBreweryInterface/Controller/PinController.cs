@@ -5,27 +5,27 @@ namespace BlazorBreweryInterface.Controller
 {
     public class PinController : IPinController
     {
-        private int _pinId;
+        private readonly int _pinId;
         private bool _isOn;
 
         public bool IsOn { get => _isOn; }
 
-        public void Shift(bool isOn, int pinId)
+        public PinController(int pinId)
         {
-            _isOn = isOn;
             _pinId = pinId;
+        }
+
+        public void Shift(bool isOn)
+        {
+            if (isOn == _isOn) return;
+            _isOn = isOn;
             using var controller = new GpioController();
             controller.OpenPin(_pinId, PinMode.Output);
             controller.Write(_pinId, isOn ? PinValue.High : PinValue.Low);
         }
 
-        public void Shift(int pinId) => Shift(!_isOn, pinId);
+        public void Shift() => Shift(!_isOn);
 
-        public void Dispose() => Shift(false, _pinId);
-
-        public void SetPinId(int pinId)
-        {
-            _pinId = pinId;
-        }
+        public void Dispose() => Shift(false);
     }
 }

@@ -9,6 +9,8 @@ using MudBlazor.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 var config = new ConfigurationBuilder().AddJsonFile("appsettings.json", optional: false).Build();
 
 

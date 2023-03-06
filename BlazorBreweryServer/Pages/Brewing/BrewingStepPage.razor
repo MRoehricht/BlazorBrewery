@@ -8,7 +8,7 @@
 @if (BrewingStep != null)
 {
     <MudItem Class="mx-12 my-4">
-        <MudPaper Class="pa-3">
+        <MudPaper Class="pa-3 mud-border-primary">
             @if (!IsReadOnly)
             {
                 <div class="d-flex gap-2">           
@@ -36,11 +36,11 @@
                 <MudItem xs="2">
                 @if (BrewingStep.Typ == BrewingStepTyp.HoldTemperature)
                 {
-                    <MudTextField T="int" ReadOnly="IsReadOnly" Label="Dauer (Minuten)" @bind-Value="BrewingStep.DurationSeconds" RequiredError="Dauer erforderlich" />
+                    <MudTextField T="int" ReadOnly="IsReadOnly" Label="Dauer (Minuten)" @bind-Value="BrewingStep.DurationMinutes" RequiredError="Dauer erforderlich" />
                 }
                 </MudItem>
                 <MudItem xs="2">
-                @if (BrewingStep.Typ == BrewingStepTyp.Heat || BrewingStep.Typ == BrewingStepTyp.HoldTemperature || BrewingStep.Typ == BrewingStepTyp.CoolDown)
+                @if (BrewingStep.Typ == BrewingStepTyp.Heat || BrewingStep.Typ == BrewingStepTyp.HoldTemperature)
                 {
                     <MudTextField T="double" ReadOnly="IsReadOnly" Label="Temperatur (°C)" @bind-Value="BrewingStep.TargetTemperature" RequiredError="Temperatur erforderlich" />
                 }
@@ -55,7 +55,7 @@
                 </MudItem>    
                 @if (_pumpintervals != null)
                 {
-                    <MudItem xs="3">
+                    <MudItem xs="2">
                             <MudSelect @bind-Value="BrewingStep.Pumpinterval" ReadOnly="IsReadOnly" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter">
                                 @foreach (var pumpinterval in _pumpintervals)
                             {
@@ -63,7 +63,12 @@
                             }
                         </MudSelect>
                     </MudItem>
-                }               
+                }   
+                <MudItem xs="1">      
+                        <MudToggleIconButton @bind-Toggled="@BrewingStep.Acknowledge"
+                                         Icon="@Icons.Material.Filled.NextPlan" Color="@Color.Success" Title="Ohne Quittierung"
+                                         ToggledIcon="@Icons.Material.Filled.Block" ToggledColor="@Color.Error" ToggledTitle="Mit Quittierung" />
+                </MudItem>
             </MudGrid>
             </MudForm>
         </MudPaper>

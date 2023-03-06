@@ -23,13 +23,11 @@ namespace BlazorBreweryServer
             if (env != null && env == "Development")
             {
                 services.AddScoped<IOneWireDeviceController, FakeOneWireDeviceController>();
-                services.AddScoped<IPinController, FakePinController>();
                 services.AddScoped<IThermometerController, FakeThermometerController>();
             }
             else
             {
                 services.AddScoped<IOneWireDeviceController, OneWireDeviceController>();
-                services.AddScoped<IPinController, PinController>();
                 services.AddScoped<IThermometerController, ThermometerController>();
             }
 

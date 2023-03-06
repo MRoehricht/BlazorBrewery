@@ -8,6 +8,7 @@
 @inject IBrewingViewModelService BrewingViewModelService;
 @inject ISnackbar Snackbar
 @inject IStepBrewService StepBrewService;
+@inject IDialogService DialogService
 
 <PageTitle>Brauen</PageTitle>
 
@@ -42,8 +43,17 @@
         }        
         @if (_isBrewingStarted)
         {
+            <MudTooltip hidden Text="Vorheriger Schritt">
+                <MudIconButton Icon="@Icons.Material.Filled.SkipPrevious" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="SkipPreviousStep"></MudIconButton>
+            </MudTooltip>
+            <MudToggleIconButton Toggled="@_isBrewingPaused" Variant="Variant.Outlined" ToggledChanged="OnPauseToggledChanged" 
+                     Icon="@Icons.Material.Filled.Pause" ToggledColor="@Color.Info" Size="Size.Large" ToggledTitle="weiter brauen"
+                     ToggledIcon="@Icons.Material.Filled.PlayArrow" ToggledSize="Size.Large" Title="Brauen pausieren" />
             <MudTooltip Text="Brauen stoppen"> 
                 <MudIconButton Icon="@Icons.Material.Filled.Stop" Variant="Variant.Outlined" Color="Color.Error" Size="Size.Large" OnClick="StopBrewing"></MudIconButton>
+            </MudTooltip>
+            <MudTooltip Text="Nächster Schritt">
+                <MudIconButton Icon="@Icons.Material.Filled.SkipNext" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="SkipNextStep"></MudIconButton>
             </MudTooltip>
         }
 
@@ -58,6 +68,9 @@
 @code {
     private BrewingViewModel? _viewModel = null;
     private bool _isBrewingStarted = false;
+    private bool _isBrewingPaused = false;
+    private BrewingStep? _currentBrewingStep;
+    private bool _acknowledgeBrewingStepIsRunning = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -86,9 +99,26 @@
     public void StartBrewing()
     {
         if (_viewModel?.SelectedRecipe == null) return;
-        StepBrewService.Run(_viewModel.SelectedRecipe.BrewingSteps.OrderBy(_ => _.Position).First(), new StepProcessesUpdater());
-        Snackbar.Add($"Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde gestartet.", Severity.Success);
+
+        _viewModel.BuildQueueBrewingSteps();
+        _currentBrewingStep = _viewModel.QueueBrewingSteps.Any() ? _viewModel.QueueBrewingSteps.Dequeue() : null;
+        if (_currentBrewingStep == null) return;
+
+        if (StepBrewService.WorkIsDone == null)
+            StepBrewService.WorkIsDone += StepIsDone;
+
+        StepBrewService.Run(_currentBrewingStep, new StepProcessesUpdater());
+        Snackbar.Add($"Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde gestartet.", Severity.Info);
         _isBrewingStarted = true;
+    }
+
+    private void StepIsDone()
+    {
+        if (_viewModel?.SelectedRecipe == null) return;   
+        InvokeAsync(async () =>
+        {
+            await BeforeStartNextStep();
+        });
     }
 
     public void StopBrewing()
@@ -97,7 +127,86 @@
 
         StepBrewService.Stop();
 
-        Snackbar.Add($"Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde gestoppt.", Severity.Error);
+        Snackbar.Add($"Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde abgebrochen.", Severity.Error);
         _isBrewingStarted = false;
+    }
+
+    private async Task BeforeStartNextStep()
+    {
+        if (_viewModel?.SelectedRecipe == null || _isBrewingStarted == false) return;
+
+        if (_currentBrewingStep != null && _currentBrewingStep.Acknowledge)
+        {
+            var acknowledgeBrewingStep = new BrewingStep { Name = "AcknowledgeBrewingStep", Typ = BrewingStepTyp.HoldTemperature, TargetTemperature = _currentBrewingStep.TargetTemperature, Pumpinterval = _currentBrewingStep.Pumpinterval };
+            StepBrewService.Run(acknowledgeBrewingStep, new StepProcessesUpdater());
+            _acknowledgeBrewingStepIsRunning = true;
+
+            var options = new DialogOptions { DisableBackdropClick = true };
+            var parameters = new DialogParameters();
+            parameters.Add("ContentText", "Möchtest du den Nächsten Schritt starten?");
+            parameters.Add("ButtonText", "Ja");
+            parameters.Add("Color", Color.Success);
+
+            var dialog = DialogService.Show<AcknowledgeStepComponent>("Confirm", parameters, options);
+            var result = await dialog.Result;
+
+            if (!result.Cancelled)
+            {
+                StartNextStep();
+            }
+        }
+        else
+        {
+            StartNextStep();
+        }
+    }
+
+    private void StartNextStep()
+    {
+        if (_viewModel?.SelectedRecipe == null || _isBrewingStarted == false) return;
+        if (_acknowledgeBrewingStepIsRunning)
+        {
+            _acknowledgeBrewingStepIsRunning = false;
+            StepBrewService.Stop();
+        }
+
+        _currentBrewingStep = _viewModel.QueueBrewingSteps.Any() ? _viewModel.QueueBrewingSteps.Dequeue() : null;
+
+        if (_currentBrewingStep == null)
+        {
+            Snackbar.Add($"Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde erfolgreich beendet.", Severity.Success);
+            _isBrewingStarted = false;
+            StateHasChanged();           
+        }
+        else
+        {
+            StepBrewService.Run(_currentBrewingStep, new StepProcessesUpdater());
+        }
+    }
+
+
+
+    public void SkipPreviousStep()
+    {
+        Snackbar.Add($"Ein Schritt zurück ...", Severity.Normal);
+    }
+
+    public void SkipNextStep()
+    {
+        Snackbar.Add($"Start nächster Schritt ...", Severity.Normal);
+        StartNextStep();
+    }
+
+    public void OnPauseToggledChanged(bool toggled)
+    {
+        _isBrewingPaused = toggled;
+        if (toggled)
+        {
+            Snackbar.Add($"Pause ...", Severity.Info);
+        }
+        else
+        {
+            Snackbar.Add($"Weiter geht´s ...", Severity.Info);
+        }
     }
 }
