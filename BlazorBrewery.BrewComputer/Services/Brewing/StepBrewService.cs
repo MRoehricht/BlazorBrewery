@@ -14,6 +14,7 @@ namespace BlazorBrewery.BrewComputer.Services.Brewing
         private DateTime _startTime;
         private IStepProcessesUpdater _updater;
         private BrewingStep _brewingStep;
+        public TimeSpan BrewTime { get; private set; }
 
         public Action WorkIsDone { get; set; }
 
@@ -49,10 +50,24 @@ namespace BlazorBrewery.BrewComputer.Services.Brewing
 
         }
 
+        public void Clear()
+        {
+            if (_temperatureManager == null || _pumpManager == null) return;
+
+            if (_temperatureManager.WorkDone != null)
+            {
+                _temperatureManager.WorkDone -= WorkDone;
+            }
+            _temperatureManager.StopWork();
+            _pumpManager.StopWork();
+            BrewTime = TimeSpan.Zero;
+        }
+
         private void WorkDone()
         {
             _updater.ICcompleted = true;
             _updater.PastTime = DateTime.Now - _startTime;
+            BrewTime += _updater.PastTime;
             _pumpManager.StopWork();
             _temperatureManager.StopWork();
             _logger.LogInformation($"{DateTime.Now.ToLongTimeString()} Stufe Beendet -" + _brewingStep.Name);
@@ -63,6 +78,7 @@ namespace BlazorBrewery.BrewComputer.Services.Brewing
         {
             _updater.ICcompleted = false;
             _updater.PastTime = DateTime.Now - _startTime;
+            BrewTime += _updater.PastTime;
             _pumpManager.StopWork();
             _temperatureManager.StopWork();
             _logger.LogInformation($"{DateTime.Now.ToLongTimeString()} Stufe Gesoppt -" + _brewingStep.Name);

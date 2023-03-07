@@ -23,13 +23,56 @@
         }
     </MudSelect>
     <br/>
-    <MudStack Justify="Justify.SpaceEvenly" Row="true">
-        <TemperatureComponent/>        
-    </MudStack>
+
+ @*   <MudPaper Outlined="true" Class="pa-2 ma-2 " Height="50">*@
+         <MudStack Justify="Justify.Center" Row="true">
+                <TemperatureComponent/>
+                @*<MudPaper Outlined="true" Class="pa-3 ma-1 d-flex align-content-center flex-wrap" Width="185px">*@
+
+                    <MudField Label="Steuerung"  Variant="Variant.Outlined">
+                        <MudStack Justify="Justify.FlexStart" Row="true">
+              
+                        @if (_viewModel.SelectedRecipe != null)
+                        {
+                            @if (!_isBrewingStarted)
+                            {
+                                <MudTooltip Text="Schritt hinzufügen">
+                                    <MudIconButton Icon="@Icons.Material.Filled.PlaylistAdd" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="AddItem"></MudIconButton>
+                                </MudTooltip>
+                                <MudTooltip Text="Rezept speichern">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="Save"></MudIconButton>
+                                </MudTooltip>
+                                <MudTooltip Text="Brauen beginnen">
+                                    <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Large" OnClick="StartBrewing"></MudIconButton>
+                                </MudTooltip>
+                            }
+                            @if (_isBrewingStarted)
+                            {
+                                <MudTooltip hidden Text="Vorheriger Schritt">
+                                    <MudIconButton Icon="@Icons.Material.Filled.SkipPrevious" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="SkipPreviousStep"></MudIconButton>
+                                </MudTooltip>
+                                <MudToggleIconButton hidden Toggled="@_isBrewingPaused" Variant="Variant.Outlined" ToggledChanged="OnPauseToggledChanged"
+                                         Icon="@Icons.Material.Filled.Pause" ToggledColor="@Color.Info" Size="Size.Large" ToggledTitle="weiter brauen"
+                                         ToggledIcon="@Icons.Material.Filled.PlayArrow" ToggledSize="Size.Large" Title="Brauen pausieren" />
+                                <MudTooltip Text="Brauen stoppen">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Stop" Variant="Variant.Outlined" Color="Color.Error" Size="Size.Large" OnClick="StopBrewing"></MudIconButton>
+                                </MudTooltip>
+                                <MudTooltip Text="Nächster Schritt">
+                                    <MudIconButton Icon="@Icons.Material.Filled.SkipNext" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="SkipNextStep"></MudIconButton>
+                                </MudTooltip>
+                            }
+                        }
+                        </MudStack>
+                    </MudField>
+               @* </MudPaper>*@
+           
+        </MudStack>
+@*    </MudPaper>*@
+   
 
     @if (_viewModel.SelectedRecipe != null)
     {
-        @if (!_isBrewingStarted)
+       @* @if (!_isBrewingStarted)
         {
             <MudTooltip Text="Schritt hinzufügen">
                 <MudIconButton Icon="@Icons.Material.Filled.PlaylistAdd" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="AddItem"></MudIconButton>
@@ -46,7 +89,7 @@
             <MudTooltip hidden Text="Vorheriger Schritt">
                 <MudIconButton Icon="@Icons.Material.Filled.SkipPrevious" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="SkipPreviousStep"></MudIconButton>
             </MudTooltip>
-            <MudToggleIconButton Toggled="@_isBrewingPaused" Variant="Variant.Outlined" ToggledChanged="OnPauseToggledChanged" 
+            <MudToggleIconButton hidden Toggled="@_isBrewingPaused" Variant="Variant.Outlined" ToggledChanged="OnPauseToggledChanged" 
                      Icon="@Icons.Material.Filled.Pause" ToggledColor="@Color.Info" Size="Size.Large" ToggledTitle="weiter brauen"
                      ToggledIcon="@Icons.Material.Filled.PlayArrow" ToggledSize="Size.Large" Title="Brauen pausieren" />
             <MudTooltip Text="Brauen stoppen"> 
@@ -55,14 +98,17 @@
             <MudTooltip Text="Nächster Schritt">
                 <MudIconButton Icon="@Icons.Material.Filled.SkipNext" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" OnClick="SkipNextStep"></MudIconButton>
             </MudTooltip>
-        }
+        }*@
 
+       
         @foreach (BrewingStep step in _viewModel.SelectedRecipe.BrewingSteps.OrderBy(_ => _.Position))
         {
-            <BrewingStepPage BrewingStep="step" IsReadOnly="_isBrewingStarted" SelectedRecipe="_viewModel.SelectedRecipe" Refresh="Refresh" />
-        }
+            <BrewingStepPage BrewingStep="step" IsReadOnly="_isBrewingStarted" SelectedRecipe="_viewModel.SelectedRecipe" Refresh="Refresh" RunnigPosition="_currentBrewingStep != null ?_currentBrewingStep.Position : 0" />
+        }   
     }
 }
+
+
 
 
 @code {
@@ -99,6 +145,7 @@
     public void StartBrewing()
     {
         if (_viewModel?.SelectedRecipe == null) return;
+        StepBrewService.Clear();
 
         _viewModel.BuildQueueBrewingSteps();
         _currentBrewingStep = _viewModel.QueueBrewingSteps.Any() ? _viewModel.QueueBrewingSteps.Dequeue() : null;
@@ -108,7 +155,8 @@
             StepBrewService.WorkIsDone += StepIsDone;
 
         StepBrewService.Run(_currentBrewingStep, new StepProcessesUpdater());
-        Snackbar.Add($"Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde gestartet.", Severity.Info);
+        Snackbar.Add($"{DateTime.Now.ToLongTimeString()} Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde gestartet.", Severity.Info);
+        Snackbar.Add($"{DateTime.Now.ToLongTimeString()} Starte Schritt {_currentBrewingStep.Name}", Severity.Normal);
         _isBrewingStarted = true;
     }
 
@@ -127,8 +175,10 @@
 
         StepBrewService.Stop();
 
-        Snackbar.Add($"Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde abgebrochen.", Severity.Error);
+        Snackbar.Add($"{DateTime.Now.ToLongTimeString()} Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde abgebrochen.", Severity.Error);
         _isBrewingStarted = false;
+        _currentBrewingStep = null;
+        Refresh();
     }
 
     private async Task BeforeStartNextStep()
@@ -174,13 +224,17 @@
 
         if (_currentBrewingStep == null)
         {
-            Snackbar.Add($"Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde erfolgreich beendet.", Severity.Success);
+            Snackbar.Add($"{DateTime.Now.ToLongTimeString()} Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde erfolgreich beendet.", Severity.Success);
             _isBrewingStarted = false;
-            StateHasChanged();           
+            var timeString = StepBrewService.BrewTime.ToString("hh':'mm':'ss");
+            DialogService.ShowMessageBox("Brauen abgeschlossen", $"Der Brauvorgang wurde erfolgreich nach {timeString} beendet.", yesText: "OK");
+            Refresh();
         }
         else
         {
             StepBrewService.Run(_currentBrewingStep, new StepProcessesUpdater());
+            Snackbar.Add($"{DateTime.Now.ToLongTimeString()} Starte Schritt {_currentBrewingStep.Name}", Severity.Normal);
+            Refresh();
         }
     }
 
@@ -193,7 +247,7 @@
 
     public void SkipNextStep()
     {
-        Snackbar.Add($"Start nächster Schritt ...", Severity.Normal);
+        StepBrewService.Stop();      
         StartNextStep();
     }
 
@@ -208,5 +262,6 @@
         {
             Snackbar.Add($"Weiter geht´s ...", Severity.Info);
         }
+        Refresh();
     }
 }

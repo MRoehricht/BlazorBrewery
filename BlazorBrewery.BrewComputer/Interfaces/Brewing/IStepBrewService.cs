@@ -5,10 +5,13 @@ namespace BlazorBrewery.BrewComputer.Interfaces.Brewing
 {
     public interface IStepBrewService
     {
+        void Clear();
         void Run(BrewingStep brewingStep, IStepProcessesUpdater updater);
 
         void Stop();
 
         Action WorkIsDone { get; set; }
+
+        TimeSpan BrewTime { get; }
     }
 }

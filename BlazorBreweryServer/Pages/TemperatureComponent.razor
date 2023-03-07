@@ -6,22 +6,28 @@
 @inject ITemperatureManager TemperatureManager;
 @inject IRelayManager RelayManager;
 @if (!string.IsNullOrEmpty(_currentTemperature))
-{
-    <MudPaper Outlined="true" Class="pa-3 ma-2">
+{ 
         <MudStack Justify="Justify.FlexStart" Row="true">
-            <MudField Label="Temperatur" Variant="Variant.Outlined">
+       @*     <MudField  Label="Temperatur" Variant="Variant.Outlined">
                 <MudTextField @bind-Value="_currentTemperature" ReadOnly="true" Variant="Variant.Text" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.DeviceThermostat" />
-            </MudField>           
-            <MudField Label="Heizung" Variant="Variant.Outlined">
-                <MudButtonGroup OverrideStyles="false">
-                    <MudButton Color="Color.Success" Variant="@_autoVariant" OnClick="AutoClicked">Auto</MudButton>
-                    <MudButton Color="Color.Primary" Variant="@_onVariant" OnClick="OnClicked">On</MudButton>
-                    <MudButton Color="Color.Primary" Variant="@_offVariant" OnClick="OffClicked">Off</MudButton>
-                </MudButtonGroup>
-            </MudField>
-            <PumpComponent></PumpComponent>
-        </MudStack>
-    </MudPaper>
+            </MudField>*@
+
+        <MudField Label="Temperatur" Variant="Variant.Outlined">
+            <MudStack Justify="Justify.FlexStart" Row="true">
+                <MudIcon Icon="@Icons.Material.Filled.DeviceThermostat" Size="Size.Large" />
+                <MudText Typo="@Typo.h5">@_currentTemperature</MudText>
+            </MudStack>
+        </MudField>
+
+        <MudField Label="Heizung" Variant="Variant.Outlined">
+            <MudButtonGroup OverrideStyles="false">
+                <MudButton Color="Color.Success" Variant="@_autoVariant" OnClick="AutoClicked">Auto</MudButton>
+                <MudButton Color="Color.Primary" Variant="@_onVariant" OnClick="OnClicked">On</MudButton>
+                <MudButton Color="Color.Primary" Variant="@_offVariant" OnClick="OffClicked">Off</MudButton>
+            </MudButtonGroup>
+        </MudField>
+        <PumpComponent></PumpComponent>
+        </MudStack>  
 }
 
 @code {

@@ -14,6 +14,7 @@ namespace BlazorBreweryServer.ViewModels.Brewing
         {
             if (SelectedRecipe == null) return;
 
+            QueueBrewingSteps.Clear();
             foreach (var step in SelectedRecipe.BrewingSteps.OrderBy(_ => _.Position))
             {
                 QueueBrewingSteps.Enqueue(step);
