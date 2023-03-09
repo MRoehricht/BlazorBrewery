@@ -1,6 +1,6 @@
 ﻿using BlazorBrewery.Core.Common;
 using BlazorBrewery.Core.Models.Brewing;
-using BlazorBrewery.Database.Interfaces.Repositories;
+using BlazorBrewery.Core.Services;
 using BlazorBreweryInterface.Controller;
 using BlazorBreweryInterface.Fake.Controller;
 using BlazorBreweryInterface.Interfaces;
@@ -11,13 +11,12 @@ namespace BlazorBrewery.BrewComputer.Manager
     public class PumpManager : IPumpManager, IRelayManagerConsumer
     {
         private readonly IPinController _pumpPinController;
-        private readonly IConfigRepository _configRepository;
         private readonly IRelayManager _relayManager;
         private readonly ILogger<PumpManager> _logger;
         private static Timer _timer;
         private bool _pumpIsRunning;
         private readonly int _pumpPinId = -1;
-        private Pumpinterval _pumpinterval;
+        private Pumpinterval? _pumpinterval;
         private bool _isRunning = false;
 
         private ManagerMode _managerMode = ManagerMode.Auto;
@@ -36,13 +35,11 @@ namespace BlazorBrewery.BrewComputer.Manager
 
         public int PinId => _pumpPinId;
 
-        public PumpManager(IConfigRepository configRepository, IRelayManager relayManager, ILogger<PumpManager> logger)
+        public PumpManager(IRelayManager relayManager, ILogger<PumpManager> logger, IConfigurationStoreService configurationStoreService)
         {
-            _configRepository = configRepository;
             _relayManager = relayManager;
             _logger = logger;
-
-            _pumpPinId = _configRepository.GetPumpPinId();
+            _pumpPinId = configurationStoreService.PumpPinId;
             if (_pumpPinId != -1)
             {
                 var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -57,7 +54,7 @@ namespace BlazorBrewery.BrewComputer.Manager
             }
             else
             {
-                throw new ApplicationException("PumpPinId is not set in Database!");
+                throw new ApplicationException("PumpPinId ist auf -1 gestellt. Bitte Konfiguration prüfen.");
             }
             relayManager.Register(this);
         }

@@ -33,7 +33,6 @@ namespace BlazorBreweryServer
 
 
             services.AddScoped<IRecipeRepository, RecipeRepository>();
-            services.AddScoped<IConfigRepository, ConfigRepository>();
 
 
             services.AddScoped<IRecipesViewModelService, RecipesViewModelService>();

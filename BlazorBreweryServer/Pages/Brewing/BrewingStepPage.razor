@@ -73,7 +73,14 @@
             </MudForm>
             @if (RunnigPosition == BrewingStep.Position)
             {
-                <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-1" />
+                @if (BrewingStep.Typ == BrewingStepTyp.Manually)
+                {
+                    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Striped="false" Value="@RunnigProgress" Class="my-1" />
+                }
+                else
+                {
+                    <MudProgressLinear Color="Color.Primary" Indeterminate="false" Striped="true" Value="@RunnigProgress" Class="my-1" />
+                }                
             }            
         </MudPaper>
     </MudItem>
@@ -95,7 +102,10 @@
     public Action Refresh { get; set; }
 
     [Parameter]
-    public int RunnigPosition { get; set; }
+    public int RunnigPosition { get; set; }  
+
+    [Parameter]
+    public int RunnigProgress { get; set; }
 
     public string classString => GenerateBorderClass();
 

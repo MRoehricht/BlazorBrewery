@@ -25,12 +25,13 @@ namespace BlazorBrewery.BrewComputer.Services.Brewing
             _logger = logger;
         }
 
-        public void Run(BrewingStep brewingStep, IStepProcessesUpdater updater)
+        public void Run(BrewingStep brewingStep, IStepProcessesUpdater updater, IProgress<int> progress)
         {
             _logger.LogInformation($"{DateTime.Now.ToLongTimeString()} Stufe Start -" + brewingStep.Name);
             _startTime = DateTime.Now;
             _updater = updater;
             _brewingStep = brewingStep;
+            progress.Report(0);
             if (brewingStep.Typ == BrewingStepTyp.Manually) return;
 
             if (brewingStep.Pumpinterval != null)
@@ -45,7 +46,7 @@ namespace BlazorBrewery.BrewComputer.Services.Brewing
                     _temperatureManager.WorkDone += WorkDone;
                 }
 
-                _temperatureManager.Work(brewingStep.TargetTemperature, brewingStep.DurationMinutes, brewingStep.Typ);
+                _temperatureManager.Work(brewingStep.TargetTemperature, brewingStep.DurationMinutes, brewingStep.Typ, progress);
             }
 
         }

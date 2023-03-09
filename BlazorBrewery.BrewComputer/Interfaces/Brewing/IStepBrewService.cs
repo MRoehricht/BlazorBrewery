@@ -6,7 +6,7 @@ namespace BlazorBrewery.BrewComputer.Interfaces.Brewing
     public interface IStepBrewService
     {
         void Clear();
-        void Run(BrewingStep brewingStep, IStepProcessesUpdater updater);
+        void Run(BrewingStep brewingStep, IStepProcessesUpdater updater, IProgress<int> progress);
 
         void Stop();
 

@@ -1,6 +1,6 @@
 ﻿using BlazorBrewery.Core.Common;
 using BlazorBrewery.Core.Models.Brewing;
-using BlazorBrewery.Database.Interfaces.Repositories;
+using BlazorBrewery.Core.Services;
 using BlazorBreweryInterface.Controller;
 using BlazorBreweryInterface.Fake.Controller;
 using BlazorBreweryInterface.Interfaces;
@@ -12,7 +12,6 @@ namespace BlazorBrewery.BrewComputer.Manager
     {
         private readonly IThermometerController _thermometerController;
         private readonly IPinController _heatingPinController;
-        private readonly IConfigRepository _configRepository;
         private readonly IRelayManager _relayManager;
         private readonly ILogger<TemperatureManager> _logger;
         private readonly int _heatPinId = -1;
@@ -38,14 +37,17 @@ namespace BlazorBrewery.BrewComputer.Manager
 
         public int PinId => _heatPinId;
 
-        public Action WorkDone { get; set; }
-        private Timer _stopTimer;
-        private Timer _tempCheckTimer;
+        public Action? WorkDone { get; set; }
+        private Timer? _stopTimer = null;
+        private Timer? _tempCheckTimer = null;
+        private IProgress<int>? _progress = null;
+        private DateTime? _startTime;
+        private double? _startTemperature;
 
-        public TemperatureManager(IThermometerController thermometerController, IConfigRepository configRepository, IRelayManager relayManager, ILogger<TemperatureManager> logger)
+        public TemperatureManager(IThermometerController thermometerController, IRelayManager relayManager, ILogger<TemperatureManager> logger, IConfigurationStoreService configurationStoreService)
         {
             _thermometerController = thermometerController;
-            _configRepository = configRepository;
+
             _relayManager = relayManager;
             _logger = logger;
 
@@ -54,34 +56,32 @@ namespace BlazorBrewery.BrewComputer.Manager
                 throw new ApplicationException("ThermometerDevice is not available!");
             }
 
-            _heatPinId = _configRepository.GetHeadingPinId();
+            _heatPinId = configurationStoreService.HeatPinId;
             if (_heatPinId != -1)
             {
                 var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-                if (env != null && env == "Development")
-                {
-                    _heatingPinController = new FakePinController(_heatPinId);
-                }
-                else
-                {
-                    _heatingPinController = new PinController(_heatPinId);
-                }
+                _heatingPinController = (env != null && env == "Development") ? new FakePinController(_heatPinId) : new PinController(_heatPinId);
+
             }
             else
             {
-                throw new ApplicationException("HeatPinId is not set in Database!");
+                throw new ApplicationException("HeatPinId ist auf -1 gestellt. Bitte Konfiguration prüfen.");
             }
 
             relayManager.Register(this);
         }
 
-        public void Work(double targetTemperature, int durationMinutes, BrewingStepTyp brewingStepTyp)
+        public void Work(double targetTemperature, int durationMinutes, BrewingStepTyp brewingStepTyp, IProgress<int> progress)
         {
             if (_heatPinId == -1 || brewingStepTyp == BrewingStepTyp.Manually) return;
             _targetTemperature = targetTemperature;
             _brewingStepTyp = brewingStepTyp;
             _durationMinutes = durationMinutes;
             _isRunning = true;
+            _progress = progress;
+            _startTime = DateTime.Now;
+
+
             if (_durationMinutes > 0)
             {
                 var runMilliSekonds = _durationMinutes * 60000;
@@ -94,6 +94,8 @@ namespace BlazorBrewery.BrewComputer.Manager
             }
 
             StartTimer();
+
+
         }
 
         private void StartTimer()
@@ -113,19 +115,35 @@ namespace BlazorBrewery.BrewComputer.Manager
 
         private void StopWorkingCallback(object? state)
         {
-            if (_tempCheckTimer != null)
-            {
-                _tempCheckTimer.Dispose();
-            }
-
+            _tempCheckTimer?.Dispose();
             TurnOff();
             WorkDone?.Invoke();
+            _progress?.Report(100);
+        }
+
+        private void Calculate(double currentTemperature)
+        {
+            if (_brewingStepTyp == BrewingStepTyp.Heat && _startTemperature.HasValue)
+            {
+                var fullDif = _targetTemperature - _startTemperature.Value;
+                var targetDif = currentTemperature - _startTemperature.Value;
+                var progressValue = (int)((targetDif * 100) / fullDif);
+                _progress?.Report(progressValue);
+
+            }
+            else if (_brewingStepTyp == BrewingStepTyp.HoldTemperature && _startTime.HasValue)
+            {
+                var currentSpam = DateTime.Now - _startTime.Value;
+                var progressValue = (int)((currentSpam.TotalSeconds * 100) / (_durationMinutes * 60));
+                _progress?.Report(progressValue);
+            }
         }
 
         public async Task CheckTemperature()
         {
             if (ManagerMode != ManagerMode.Auto) return;
             var currentTemperature = await GetCurrentTemperature();
+            Calculate(currentTemperature);
             if (_brewingStepTyp == BrewingStepTyp.Heat)
             {
                 if (currentTemperature < (_targetTemperature + 1))
@@ -159,6 +177,10 @@ namespace BlazorBrewery.BrewComputer.Manager
         public async Task<double> GetCurrentTemperature()
         {
             var currentTemperature = await _thermometerController.ReadTemperature();
+            if (!_startTemperature.HasValue)
+            {
+                _startTemperature = currentTemperature;
+            }
             return currentTemperature;
         }
 
@@ -168,19 +190,13 @@ namespace BlazorBrewery.BrewComputer.Manager
 
             if (mode == ManagerMode.On)
             {
-                if (_tempCheckTimer != null)
-                {
-                    _tempCheckTimer.Dispose();
-                }
+                _tempCheckTimer?.Dispose();
                 TurnOn();
 
             }
             else if (mode == ManagerMode.Off)
             {
-                if (_tempCheckTimer != null)
-                {
-                    _tempCheckTimer.Dispose();
-                }
+                _tempCheckTimer?.Dispose();
                 TurnOff();
 
             }
@@ -242,6 +258,8 @@ namespace BlazorBrewery.BrewComputer.Manager
             {
                 TurnOff();
             }
+
+            _progress?.Report(100);
         }
     }
 }

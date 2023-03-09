@@ -1,3 +1,4 @@
+using BlazorBrewery.Core.Services;
 using BlazorBrewery.Database.Context;
 using BlazorBreweryDatabase.Context;
 using BlazorBreweryServer;
@@ -20,6 +21,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
 //builder.Services.AddMudServices();
 builder.Services.AddServiceDependencies();
+builder.Services.AddSingleton<IConfigurationStoreService>(new ConfigurationStoreService(config["PinConfig:HeatPinId"], config["PinConfig:PumpPinId"]));
 
 builder.Services.AddMudServices(config =>
 {
@@ -35,9 +37,13 @@ builder.Services.AddMudServices(config =>
 });
 
 var connection = config["ConnectionStrings:DefaultConnection"];
+if (connection == null)
+{
+    throw new ApplicationException("ConnectionStrings:DefaultConnection konnte nicht aus den appsettings gelesen werden.");
+}
+
 builder.Services.AddDbContext<UserContext>(options => options.UseMySQL(connection));
 builder.Services.AddDbContext<RecipeContext>(options => options.UseMySQL(connection));
-builder.Services.AddDbContext<ConfigContext>(options => options.UseMySQL(connection));
 
 
 
