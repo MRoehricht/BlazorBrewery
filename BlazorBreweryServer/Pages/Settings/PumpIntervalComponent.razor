@@ -1,0 +1,52 @@
+﻿@using BlazorBrewery.Core.Models.Brewing;
+@using BlazorBreweryServer.Services.Interfaces.ViewModels.Settings;
+@using BlazorBreweryServer.ViewModels.Settings;
+@inject IPumpIntervalViewModelService ViewModelService;
+
+<h3>PumpIntervalComponent</h3>
+@if (_viewModel == null)
+{
+    <div style="display: flex; justify-content: center;">
+        <MudProgressCircular Class="object-center" Color="Color.Default" Indeterminate="true" />
+    </div>
+}
+else
+{
+    <MudFab Color="Color.Primary" Size="Size.Medium" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateNewRecipe" />
+    <MudTable Items="@_viewModel.Pumpintervals" Hover="true" Striped="true" Bordered="true" Breakpoint="Breakpoint.Sm" OnRowClick="RowClickEvent" T="Pumpinterval">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="Löschen" OnClick="() => DeleteItem(context)"></MudIconButton>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private PumpIntervalViewModel _viewModel = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _viewModel = await ViewModelService.GetPumpIntervalViewModel();        
+    }
+
+    private async Task CreateNewRecipe()
+    {
+        var emptyPumpinterval = await ViewModelService.CreateEmtyPumpInterval();
+        _viewModel.Pumpintervals.Add(emptyPumpinterval);
+        StateHasChanged();
+    }
+
+    private async Task RowClickEvent(TableRowClickEventArgs<Pumpinterval> tableRowClickEventArgs)
+    {
+
+    }
+
+    private void  DeleteItem(Pumpinterval pumpinterval)
+    {
+        
+    }
+
+}

@@ -11,18 +11,18 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
         <MudSpacer />
         <MudToggleIconButton @bind-Toggled="@_isDarkMode"
-                             Icon="@Icons.Filled.DarkMode" Color="@Color.Default" Title="Off"
-                             ToggledIcon="@Icons.Filled.LightMode" ToggledColor="@Color.Default" ToggledTitle="On" />
+                             Icon="@Icons.Material.Filled.DarkMode" Color="@Color.Default" Title="Off"
+                             ToggledIcon="@Icons.Material.Filled.LightMode" ToggledColor="@Color.Default" ToggledTitle="On" />
         <MudAvatar Color="Color.Secondary" Size="Size.Small">MR</MudAvatar>
-        @*<MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/MudBlazor/MudBlazor" Target="_blank" />*@
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/MRoehricht/BlazorBrewery" Target="_blank" />
     </MudAppBar>
     <MudDrawer @bind-Open="@open" ClipMode="@DrawerClipMode.Always" Breakpoint="@Breakpoint.Sm" OpenMiniOnHover="true" Elevation="1" Variant="@DrawerVariant.Mini">
         <MudNavMenu>
-            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Filled.Dashboard" href="">Dashboard</MudNavLink>
-            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Filled.PendingActions" href="Brewing">Brauen</MudNavLink>
-            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Filled.Group" href="fetchdata">Community</MudNavLink>
-            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Filled.AutoStories" href="recipes">Rezepte</MudNavLink>
-            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Filled.Settings" href="settings">Einstellungen</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard" href="">Dashboard</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.PendingActions" href="Brewing">Brauen</MudNavLink>
+            @*<MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Group" href="fetchdata">Community</MudNavLink>*@
+            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AutoStories" href="recipes">Rezepte</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Settings" href="settings">Einstellungen</MudNavLink>
         </MudNavMenu>
     </MudDrawer>
     <MudMainContent Class="pt-16 px-16">

@@ -122,6 +122,12 @@ namespace BlazorBrewery.BrewComputer.Manager
 
         private void TimerCallbackTask(object? state)
         {
+            if (_pumpinterval == null)
+            {
+                TurnOff();
+                return;
+            }
+
             if (_pumpIsRunning)
             {
                 _timer.Change(_pumpinterval.PausetimeMilliSeconds, 0);

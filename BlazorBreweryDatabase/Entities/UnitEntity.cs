@@ -12,7 +12,7 @@ namespace BlazorBrewery.Database.Entities
         [Required]
         [Column(TypeName = "VARCHAR(100)")]
         [MaxLength(100)]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         public virtual List<IngredientEntity> Ingredients { get; set; } = new List<IngredientEntity>();
     }

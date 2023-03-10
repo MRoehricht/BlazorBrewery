@@ -17,6 +17,7 @@
 }
 else
 {
+    <MudFab Color="Color.Primary" Size="Size.Medium" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateNewRecipe" />
     <MudTable Items="@_viewModel.Recipes" Hover="true" Striped="true" Bordered="true" Breakpoint="Breakpoint.Sm" OnRowClick="RowClickEvent" T="BrewingRecipe">
         <HeaderContent>
             <MudTh>Name</MudTh>
@@ -25,6 +26,7 @@ else
         <RowTemplate>
             <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="Löschen" OnClick="() => DeleteItem(context)"></MudIconButton>
         </RowTemplate>
     </MudTable>
 }
@@ -41,13 +43,21 @@ else
         {
             _viewModel = await RecipesViewModelService.GetRecipes();
             StateHasChanged();
-        }        
+        }
     }
 
+    private async Task CreateNewRecipe()
+    {
+        await RecipeRepository.Add(new BrewingRecipe { Id = Guid.NewGuid() });
+        _viewModel = await RecipesViewModelService.GetRecipes();
+        StateHasChanged();
+
+        var a = new TableRowClickEventArgs<BrewingRecipe>();
+    }
 
     private async Task RowClickEvent(TableRowClickEventArgs<BrewingRecipe> tableRowClickEventArgs)
     {
-        DialogOptions maxWidth = new DialogOptions() { MaxWidth = MaxWidth.Large, FullWidth = true, DisableBackdropClick = true, CloseButton = false, NoHeader=true };
+        DialogOptions maxWidth = new DialogOptions() { MaxWidth = MaxWidth.Large, FullWidth = true, DisableBackdropClick = true, CloseButton = false, NoHeader = true };
         DialogOptions noHeader = new DialogOptions() { NoHeader = true };
         DialogOptions fullScreen = new DialogOptions() { FullScreen = true, CloseButton = true };
 
@@ -59,17 +69,24 @@ else
         var dialog = Dialog.Show<RecipeDialog>(dialogName, parameters, maxWidth);
         var result = await dialog.Result;
 
-        if (!result.Cancelled)
+        if (!result.Canceled)
         {
             if (result.Data is BrewingRecipe brewingRecipe)
             {
                 await RecipeRepository.Save(brewingRecipe);
-            }      
+            }
         }
 
         _viewModel = null;
         StateHasChanged();
 
+        _viewModel = await RecipesViewModelService.GetRecipes();
+        StateHasChanged();
+    }
+
+    private async Task DeleteItem(BrewingRecipe brewingRecipe)
+    {
+        await RecipeRepository.Delete(brewingRecipe);
         _viewModel = await RecipesViewModelService.GetRecipes();
         StateHasChanged();
     }

@@ -12,8 +12,21 @@ namespace BlazorBrewery.Database.Context
         public DbSet<UnitEntity> Units { get; set; }
         public DbSet<PumpIntervalEntity> PumpIntervals { get; set; }
 
+        public RecipeContext() : base()
+        {
+            //PS C:\Users\Matth\source\Git\BlazorBrewery\BlazorBreweryDatabase> dotnet ef migrations add InitialCreate
+        }
+
         public RecipeContext(DbContextOptions<RecipeContext> options) : base(options)
         {
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseSqlite("Data Source=BlazorBrewery.db");
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -40,6 +53,8 @@ namespace BlazorBrewery.Database.Context
             .HasForeignKey(p => p.RecipeId)
             //.HasForeignKey(p => p.PumpIntervalId)
             .HasPrincipalKey(b => b.Id);
+
+
         }
     }
 }

@@ -1,6 +1,5 @@
 using BlazorBrewery.Core.Services;
 using BlazorBrewery.Database.Context;
-using BlazorBreweryDatabase.Context;
 using BlazorBreweryServer;
 using BlazorBreweryServer.Data;
 using Microsoft.EntityFrameworkCore;
@@ -42,10 +41,11 @@ if (connection == null)
     throw new ApplicationException("ConnectionStrings:DefaultConnection konnte nicht aus den appsettings gelesen werden.");
 }
 
-builder.Services.AddDbContext<UserContext>(options => options.UseMySQL(connection));
-builder.Services.AddDbContext<RecipeContext>(options => options.UseMySQL(connection));
+builder.Services.AddSqlite<RecipeContext>(config["ConnectionStrings:SQLiteConnection"]);
 
-
+builder.Services.AddDbContext<RecipeContext>(options =>
+            options.UseSqlite(config["ConnectionStrings:SQLiteConnection"]) //connection string
+        );
 
 var app = builder.Build();
 

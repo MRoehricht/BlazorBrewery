@@ -15,16 +15,27 @@ namespace BlazorBrewery.Database.Repositories
         {
             _recipeContext = recipeContext;
         }
+        private void CreateDefaultRecipe()
+        {
+            var brewingRecipe = new RecipeEntity { Id = Guid.NewGuid(), Name = "Tenne", Description = "Erstes Default Rezept" };
+            _recipeContext.Recipes.Add(brewingRecipe);
+            _recipeContext.SaveChanges();
+        }
 
         public async Task<List<BrewingRecipe>> AllBrewingRecipes()
         {
             var recipes = await _recipeContext.Recipes.Include(c => c.Ingredients).ThenInclude(c => c.Unit).Include(c => c.Steps).ToListAsync();
 
+            if (recipes.Count == 0)
+                CreateDefaultRecipe();
+
             var output = new List<BrewingRecipe>();
 
             foreach (var recipe in recipes)
             {
-                output.Add(Parse(recipe));
+                var parsedValue = Parse(recipe);
+                if (parsedValue == null) continue;
+                output.Add(parsedValue);
             }
 
             return output;
@@ -35,8 +46,15 @@ namespace BlazorBrewery.Database.Repositories
             return new BrewingRecipe();
         }
 
-        public BrewingRecipe Add(BrewingRecipe brewingRecipe)
+        public async Task<BrewingRecipe> Add(BrewingRecipe brewingRecipe)
         {
+            var brewingRecipeDB = new RecipeEntity { Id = brewingRecipe.Id };
+            _recipeContext.Recipes.Add(brewingRecipeDB);
+            await _recipeContext.SaveChangesAsync();
+
+            SetRecipeEntity(brewingRecipeDB, brewingRecipe);
+            await _recipeContext.SaveChangesAsync();
+
             return brewingRecipe;
         }
 
@@ -51,16 +69,21 @@ namespace BlazorBrewery.Database.Repositories
             }
             else
             {
-                Add(brewingRecipe);
+                await Add(brewingRecipe);
             }
 
 
             return brewingRecipe;
         }
 
-        public void Delete(BrewingRecipe brewingRecipe)
+        public async Task Delete(BrewingRecipe brewingRecipe)
         {
-
+            var dbItem = await _recipeContext.Recipes.FindAsync(brewingRecipe.Id);
+            if (dbItem != null)
+            {
+                _recipeContext.Recipes.Remove(dbItem);
+                await _recipeContext.SaveChangesAsync();
+            }
         }
 
         private void SetRecipeEntity(RecipeEntity entity, BrewingRecipe brewingRecipe)
@@ -129,12 +152,16 @@ namespace BlazorBrewery.Database.Repositories
             var recipe = new BrewingRecipe { Id = entity.Id, Name = entity.Name, Description = entity.Description };
             foreach (var ingredientsin in entity.Ingredients)
             {
-                recipe.Ingredients.Add(Parse(ingredientsin));
+                var parsedValue = Parse(ingredientsin);
+                if (parsedValue == null) continue;
+                recipe.Ingredients.Add(parsedValue);
             }
 
             foreach (var step in entity.Steps)
             {
-                recipe.BrewingSteps.Add(Parse(step));
+                var parsedValue = Parse(step);
+                if (parsedValue == null) continue;
+                recipe.BrewingSteps.Add(parsedValue);
             }
 
 
@@ -153,10 +180,10 @@ namespace BlazorBrewery.Database.Repositories
             return new Unit { Id = entity.Id, Name = entity.Name };
         }
 
-        private BrewingStep Parse(StepEntity entity)
+        private BrewingStep? Parse(StepEntity entity)
         {
             if (entity == null) return null;
-            Pumpinterval pumpinterval = null;
+            Pumpinterval? pumpinterval = null;
             if (entity.PumpIntervalId != null)
             {
                 var interval = _recipeContext.PumpIntervals.Find(entity.PumpIntervalId);
@@ -173,9 +200,14 @@ namespace BlazorBrewery.Database.Repositories
         {
             var output = new List<Unit>();
             var unitEnities = await _recipeContext.Units.ToListAsync();
+            if (unitEnities.Count == 0)
+            {
+                await CreateDefaultUnits();
+            }
 
             foreach (var unit in unitEnities)
             {
+                if (unit == null) continue;
                 output.Add(Parse(unit));
             }
             return output;
@@ -190,9 +222,41 @@ namespace BlazorBrewery.Database.Repositories
             return Parse(entity);
         }
 
+        private async Task CreateDefaultUnits()
+        {
+            var unit_ml = new UnitEntity { Id = Guid.NewGuid(), Name = "ml" };
+            var unit_l = new UnitEntity { Id = Guid.NewGuid(), Name = "l" };
+            var unit_kg = new UnitEntity { Id = Guid.NewGuid(), Name = "kg" };
+            var unit_g = new UnitEntity { Id = Guid.NewGuid(), Name = "g" };
+            _recipeContext.Units.Add(unit_ml);
+            _recipeContext.Units.Add(unit_l);
+            _recipeContext.Units.Add(unit_kg);
+            _recipeContext.Units.Add(unit_g);
+
+            await _recipeContext.SaveChangesAsync();
+        }
+
+        private async Task CreateDefaultPumpIntervals()
+        {
+            PumpIntervalEntity pumpIntervalEntityNichtPumpen = new PumpIntervalEntity { Id = Guid.NewGuid(), Name = "Nicht pumpen", RuntimeSeconds = 0, PausetimeSeconds = 0 };
+            PumpIntervalEntity pumpIntervalEntity120_45 = new PumpIntervalEntity { Id = Guid.NewGuid(), Name = "120/45", RuntimeSeconds = 120, PausetimeSeconds = 45 };
+            PumpIntervalEntity pumpIntervalEntityPumpen = new PumpIntervalEntity { Id = Guid.NewGuid(), Name = "Pumpen", RuntimeSeconds = 60, PausetimeSeconds = 0 };
+            _recipeContext.PumpIntervals.Add(pumpIntervalEntityNichtPumpen);
+            _recipeContext.PumpIntervals.Add(pumpIntervalEntity120_45);
+            _recipeContext.PumpIntervals.Add(pumpIntervalEntityPumpen);
+            await _recipeContext.SaveChangesAsync();
+
+        }
+
         public async Task<List<Pumpinterval>> GetAllPumpintervals()
         {
             var list = await _recipeContext.PumpIntervals.ToListAsync();
+            if (list.Count == 0)
+            {
+                await CreateDefaultPumpIntervals();
+            }
+
+
             List<Pumpinterval> output = new List<Pumpinterval>();
             foreach (var interval in list)
             {
@@ -200,6 +264,16 @@ namespace BlazorBrewery.Database.Repositories
             }
 
             return output;
+        }
+
+        public async Task<Pumpinterval> CreateEmptyPumpInterval()
+        {
+            var id = Guid.NewGuid();
+            await _recipeContext.PumpIntervals.AddAsync(new PumpIntervalEntity { Id = id, Name = "neu", PausetimeSeconds = 0, RuntimeSeconds = 0 });
+            await _recipeContext.SaveChangesAsync();
+            var newInterval = await _recipeContext.PumpIntervals.FindAsync(id);
+
+            return Parse(newInterval);
         }
 
         public Pumpinterval Parse(PumpIntervalEntity entity)

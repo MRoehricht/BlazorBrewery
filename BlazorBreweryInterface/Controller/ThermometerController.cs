@@ -5,6 +5,9 @@ namespace BlazorBreweryInterface.Controller
 {
     public class ThermometerController : IThermometerController
     {
+        public DateTime LastReadTime { get; private set; }
+
+        public double LastTemperature { get; private set; }
 
         public bool IsThermometerDeviceAvailable()
         {
@@ -13,14 +16,22 @@ namespace BlazorBreweryInterface.Controller
 
         public async Task<double> ReadTemperature()
         {
+            if (DateTime.Now < LastReadTime.AddSeconds(2))
+            {
+                return LastTemperature;
+            }
+
+            LastReadTime = DateTime.Now;
+
+
             foreach (var dev in OneWireThermometerDevice.EnumerateDevices())
             {
                 var temperatur = (await dev.ReadTemperatureAsync()).DegreesCelsius;
-
-                return temperatur;
+                LastTemperature = temperatur;
+                break;
             }
 
-            return double.MinValue;
+            return LastTemperature;
         }
 
         //public async Task A()

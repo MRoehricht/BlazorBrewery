@@ -5,13 +5,14 @@ namespace BlazorBrewery.Database.Interfaces.Repositories
 {
     public interface IRecipeRepository
     {
-        BrewingRecipe Add(BrewingRecipe brewingRecipe);
+        Task<BrewingRecipe> Add(BrewingRecipe brewingRecipe);
         Task<List<BrewingRecipe>> AllBrewingRecipes();
-        void Delete(BrewingRecipe brewingRecipe);
+        Task Delete(BrewingRecipe brewingRecipe);
         BrewingRecipe GetBrewingRecipe(Guid Id);
         Task<BrewingRecipe> Save(BrewingRecipe brewingRecipe);
         Task<List<Unit>> GetUnits();
         Task<BrewingStep?> GetBrewingStep(Guid id);
         Task<List<Pumpinterval>> GetAllPumpintervals();
+        Task<Pumpinterval> CreateEmptyPumpInterval();
     }
 }

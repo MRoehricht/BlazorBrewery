@@ -48,7 +48,6 @@ namespace BlazorBrewery.BrewComputer.Services.Brewing
 
                 _temperatureManager.Work(brewingStep.TargetTemperature, brewingStep.DurationMinutes, brewingStep.Typ, progress);
             }
-
         }
 
         public void Clear()

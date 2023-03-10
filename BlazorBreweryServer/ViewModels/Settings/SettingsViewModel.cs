@@ -2,10 +2,8 @@
 {
     public class SettingsViewModel
     {
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
-        public string BlazorBreweryVersion { get; set; }
-
-
+        public string? BlazorBreweryVersion { get; set; }
     }
 }

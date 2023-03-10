@@ -7,15 +7,15 @@
     <DialogContent>
         <MudContainer>
             @if (BrewingRecipe != null)
-            {                
+            {
                 <EditForm Model="@BrewingRecipe" OnValidSubmit="OnValidSubmit">
                     <DataAnnotationsValidator />
-                    <MudCard >
+                    <MudCard>
                         <MudCardContent>
                             <MudTextField Label="Name" HelperText="Erforderlich" Class="m-2"
-                                        @bind-Value="BrewingRecipe.Name" For="@(() => BrewingRecipe.Name)" />
+                                      @bind-Value="BrewingRecipe.Name" For="@(() => BrewingRecipe.Name)" />
                             <MudTextField Label="Beschreibung" Variant="Variant.Outlined" Lines="3" Class="m-2"
-                                        @bind-Value="BrewingRecipe.Description" For="@(() => BrewingRecipe.Description)" />
+                                      @bind-Value="BrewingRecipe.Description" For="@(() => BrewingRecipe.Description)" />
                             <MudDivider DividerType="DividerType.FullWidth" Class="m-2" />
                             <MudText GutterBottom="true">Zutaten</MudText><MudIconButton Icon="@Icons.Material.Filled.Add" OnClick="Add"></MudIconButton>
                             <MudChipSet AllClosable="true" OnClose="Closed">
@@ -25,16 +25,16 @@
                                 }
                             </MudChipSet>
                         </MudCardContent>
-                        <MudCardActions>                           
-                                <MudContainer Class="d-flex justify-end flex-grow-1 gap-2">                                    
-                                    <MudButton  ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Ok</MudButton>
-                                    <MudButton  OnClick="Cancel">Abbruch</MudButton>
-                                </MudContainer>
+                        <MudCardActions>
+                            <MudContainer Class="d-flex justify-end flex-grow-1 gap-2">                                
+                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Ok</MudButton>
+                                <MudButton OnClick="Cancel">Abbruch</MudButton>
+                            </MudContainer>
                         </MudCardActions>
-                    </MudCard>                    
-                </EditForm>               
+                    </MudCard>
+                </EditForm>
             }
-        </MudContainer>       
+        </MudContainer>
     </DialogContent>
 </MudDialog>
 
@@ -47,7 +47,7 @@
     {
         base.OnParametersSet();
 
-        if(BrewingRecipe?.Ingredients != null) 
+        if (BrewingRecipe?.Ingredients != null)
         {
             foreach (var ingredient in BrewingRecipe.Ingredients)
             {
@@ -75,6 +75,10 @@
         var result = await dialog.Result;
     }
 
+    private void DeleteItem()
+    {
+        
+    }
 
     void Cancel() => MudDialog.Cancel();
 }
