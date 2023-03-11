@@ -1,33 +1,34 @@
-﻿@page "/TemperatureComponent"
-
-@using BlazorBrewery.BrewComputer.Manager;
-@using System.Threading;
+﻿@using BlazorBrewery.BrewComputer.Manager;
+@using System.Timers;
 @using BlazorBrewery.Core.Models.Brewing;
-@inject ITemperatureManager TemperatureManager;
+@using System.Diagnostics;
 @inject IRelayManager RelayManager;
+@implements IDisposable;
+
 @if (!string.IsNullOrEmpty(_currentTemperature))
-{ 
-        <MudStack Justify="Justify.FlexStart" Row="true">
-       @*     <MudField  Label="Temperatur" Variant="Variant.Outlined">
-                <MudTextField @bind-Value="_currentTemperature" ReadOnly="true" Variant="Variant.Text" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.DeviceThermostat" />
-            </MudField>*@
+{
+    <MudStack Justify="Justify.FlexStart" Row="true">
+        @*     <MudField  Label="Temperatur" Variant="Variant.Outlined">
+    <MudTextField @bind-Value="_currentTemperature" ReadOnly="true" Variant="Variant.Text" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.DeviceThermostat" />
+    </MudField>*@
 
-        <MudField Label="Temperatur" Variant="Variant.Outlined">
-            <MudStack Justify="Justify.FlexStart" Row="true">
-                <MudIcon Icon="@Icons.Material.Filled.DeviceThermostat" Color="@_deviceThermostatColor" Size="Size.Large" />
-                <MudText Typo="@Typo.h6">@_currentTemperature</MudText>
-            </MudStack>
-        </MudField>
-
+        <div style="min-height:80px">
+            <MudField Label="Temperatur" Variant="Variant.Outlined">
+                <MudStack Justify="Justify.FlexStart" Row="true">
+                    <MudIcon Icon="@Icons.Material.Filled.DeviceThermostat" Color="@_deviceThermostatColor" Size="Size.Large" />
+                    <MudText Typo="@Typo.h6">@_currentTemperature</MudText>
+                </MudStack>
+            </MudField>
+        </div>
         <MudField Label="Heizung" Variant="Variant.Outlined">
             <MudButtonGroup OverrideStyles="false">
-                <MudButton Color="Color.Success" Variant="@_autoVariant" OnClick="AutoClicked">Auto</MudButton>
-                <MudButton Color="Color.Primary" Variant="@_onVariant" OnClick="OnClicked">On</MudButton>
-                <MudButton Color="Color.Primary" Variant="@_offVariant" OnClick="OffClicked">Off</MudButton>
+                <MudButton Color="Color.Success" Variant="@_autoVariant" Size="Size.Large" OnClick="AutoClicked">Auto</MudButton>
+                <MudButton Color="Color.Primary" Variant="@_onVariant" Size="Size.Large" OnClick="OnClicked">On</MudButton>
+                <MudButton Color="Color.Primary" Variant="@_offVariant" Size="Size.Large" OnClick="OffClicked">Off</MudButton>
             </MudButtonGroup>
         </MudField>
         <PumpComponent></PumpComponent>
-        </MudStack>  
+    </MudStack>
 }
 
 @code {
@@ -36,10 +37,15 @@
     private Variant _onVariant = Variant.Outlined;
     private Variant _offVariant = Variant.Outlined;
     private Color _deviceThermostatColor = Color.Info;
+    private Timer _timer = new(1000);
+
+    [Parameter]
+    public ITemperatureManager? TemperatureManager { get; set; }
 
     protected override void OnInitialized()
     {
-        StartCountdown();
+        _timer.Elapsed += (sender, eventArgs) => OnTimerCallback();
+        _timer.Start();
     }
 
     protected void SetDeviceThermostatColor(double currentTemperature)
@@ -59,19 +65,22 @@
         else if (currentTemperature >= 60)
         {
             _deviceThermostatColor = Color.Error;
-        }  
+        }
     }
 
     protected void AutoClicked()
     {
+        if (TemperatureManager == null) return;
         _autoVariant = Variant.Filled;
         _onVariant = Variant.Outlined;
         _offVariant = Variant.Outlined;
         RelayManager.SetPinMode(TemperatureManager.PinId, ManagerMode.Auto);
+
     }
 
     protected void OnClicked()
     {
+        if (TemperatureManager == null) return;
         _autoVariant = Variant.Outlined;
         _onVariant = Variant.Filled;
         _offVariant = Variant.Outlined;
@@ -80,23 +89,25 @@
 
     protected void OffClicked()
     {
+        if (TemperatureManager == null) return;
         _autoVariant = Variant.Outlined;
         _onVariant = Variant.Outlined;
-        _offVariant = Variant.Filled;        
-        RelayManager.SetPinMode(TemperatureManager.PinId, ManagerMode.Off);
+        _offVariant = Variant.Filled;
     }
 
-    private void StartCountdown()
+
+    private void OnTimerCallback()
     {
-        var timer = new Timer(new TimerCallback(_ =>
-        {            
-            InvokeAsync(async () =>{
-                var _currentTemperatureDouble = await TemperatureManager.GetCurrentTemperature();                
-                _currentTemperature = _currentTemperatureDouble.ToString("N2") + " °C";
-                SetDeviceThermostatColor(_currentTemperatureDouble);
-                StateHasChanged();
-            });
-            
-        }), null, 1000, 1000);
+        _ = InvokeAsync(async () =>
+        {
+            if (TemperatureManager == null) return;
+
+            var _currentTemperatureDouble = await TemperatureManager.GetCurrentTemperature();
+            _currentTemperature = _currentTemperatureDouble.ToString("N2") + " °C";
+            SetDeviceThermostatColor(_currentTemperatureDouble);
+            StateHasChanged();
+        });
     }
+
+    public void Dispose() => _timer.Dispose();
 }

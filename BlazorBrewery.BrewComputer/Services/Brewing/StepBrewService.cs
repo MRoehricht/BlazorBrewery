@@ -8,7 +8,7 @@ namespace BlazorBrewery.BrewComputer.Services.Brewing
 {
     public class StepBrewService : IStepBrewService
     {
-        private readonly ITemperatureManager _temperatureManager;
+        public ITemperatureManager TemperatureManager { get; init; }
         private readonly IPumpManager _pumpManager;
         private readonly ILogger<StepBrewService> _logger;
         private DateTime _startTime;
@@ -20,7 +20,7 @@ namespace BlazorBrewery.BrewComputer.Services.Brewing
 
         public StepBrewService(ITemperatureManager temperatureManager, IPumpManager pumpManager, ILogger<StepBrewService> logger)
         {
-            _temperatureManager = temperatureManager;
+            TemperatureManager = temperatureManager;
             _pumpManager = pumpManager;
             _logger = logger;
         }
@@ -41,24 +41,24 @@ namespace BlazorBrewery.BrewComputer.Services.Brewing
 
             if (brewingStep.TargetTemperature != 0.0)
             {
-                if (_temperatureManager.WorkDone == null)
+                if (TemperatureManager.WorkDone == null)
                 {
-                    _temperatureManager.WorkDone += WorkDone;
+                    TemperatureManager.WorkDone += WorkDone;
                 }
 
-                _temperatureManager.Work(brewingStep.TargetTemperature, brewingStep.DurationMinutes, brewingStep.Typ, progress);
+                TemperatureManager.Work(brewingStep.TargetTemperature, brewingStep.DurationMinutes, brewingStep.Typ, progress);
             }
         }
 
         public void Clear()
         {
-            if (_temperatureManager == null || _pumpManager == null) return;
+            if (TemperatureManager == null || _pumpManager == null) return;
 
-            if (_temperatureManager.WorkDone != null)
+            if (TemperatureManager.WorkDone != null)
             {
-                _temperatureManager.WorkDone -= WorkDone;
+                TemperatureManager.WorkDone -= WorkDone;
             }
-            _temperatureManager.StopWork();
+            TemperatureManager.StopWork();
             _pumpManager.StopWork();
             BrewTime = TimeSpan.Zero;
         }
@@ -69,7 +69,7 @@ namespace BlazorBrewery.BrewComputer.Services.Brewing
             _updater.PastTime = DateTime.Now - _startTime;
             BrewTime += _updater.PastTime;
             _pumpManager.StopWork();
-            _temperatureManager.StopWork();
+            TemperatureManager.StopWork();
             _logger.LogInformation($"{DateTime.Now.ToLongTimeString()} Stufe Beendet -" + _brewingStep.Name);
             WorkIsDone?.Invoke();
         }
@@ -80,7 +80,7 @@ namespace BlazorBrewery.BrewComputer.Services.Brewing
             _updater.PastTime = DateTime.Now - _startTime;
             BrewTime += _updater.PastTime;
             _pumpManager.StopWork();
-            _temperatureManager.StopWork();
+            TemperatureManager.StopWork();
             _logger.LogInformation($"{DateTime.Now.ToLongTimeString()} Stufe Gesoppt -" + _brewingStep.Name);
         }
     }

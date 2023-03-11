@@ -1,0 +1,26 @@
+﻿@using BlazorBreweryServer.Services.ViewModels.SingletonTest;
+@using BlazorBreweryServer.ViewModels.SingletonTest;
+@inject ISingletonTestViewModelService SingletonTestViewModelService;
+
+
+<h6>SingletonTestComponent</h6>
+@if(_viewModel != null){
+    <MudTextField Label="Name" @bind-Value="_viewModel.Name"></MudTextField>
+}
+
+@code {
+    SingletonTestViewModel? _viewModel = null;
+
+
+    protected override void OnInitialized()
+    {
+        _viewModel = SingletonTestViewModelService.GetViewModelInstanz();
+        _viewModel.RefreshMe += Refresh;
+    }
+
+    private void Refresh()
+    {
+        InvokeAsync(() =>  StateHasChanged());
+    }
+
+}

@@ -1,10 +1,12 @@
-﻿using BlazorBrewery.Core.Models.Brewing;
+﻿using BlazorBrewery.BrewComputer.Manager;
+using BlazorBrewery.Core.Models.Brewing;
 using BlazorBrewery.Core.Models.Processes;
 
 namespace BlazorBrewery.BrewComputer.Interfaces.Brewing
 {
     public interface IStepBrewService
     {
+        ITemperatureManager TemperatureManager { get; }
         void Clear();
         void Run(BrewingStep brewingStep, IStepProcessesUpdater updater, IProgress<int> progress);
 

@@ -44,6 +44,8 @@ namespace BlazorBrewery.BrewComputer.Manager
         private DateTime? _startTime;
         private double? _startTemperature;
 
+        Action TempHasChanged { get; set; }
+
         public TemperatureManager(IThermometerController thermometerController, IRelayManager relayManager, ILogger<TemperatureManager> logger, IConfigurationStoreService configurationStoreService)
         {
             _thermometerController = thermometerController;

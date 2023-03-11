@@ -1,13 +1,21 @@
 ﻿using BlazorBreweryInterface.Interfaces;
 using Iot.Device.OneWire;
+using Microsoft.Extensions.Logging;
 
 namespace BlazorBreweryInterface.Controller
 {
     public class ThermometerController : IThermometerController
     {
+        private readonly ILogger<ThermometerController> _logger;
+
         public DateTime LastReadTime { get; private set; }
 
         public double LastTemperature { get; private set; }
+
+        public ThermometerController(ILogger<ThermometerController> logger)
+        {
+            _logger = logger;
+        }
 
         public bool IsThermometerDeviceAvailable()
         {
@@ -28,9 +36,11 @@ namespace BlazorBreweryInterface.Controller
             {
                 var temperatur = (await dev.ReadTemperatureAsync()).DegreesCelsius;
                 LastTemperature = temperatur;
+
                 break;
             }
 
+            _logger.LogInformation($"{DateTime.Now.ToLongTimeString()}  - LastTemperature: {LastTemperature} °C");
             return LastTemperature;
         }
 

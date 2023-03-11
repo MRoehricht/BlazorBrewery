@@ -15,5 +15,7 @@ namespace BlazorBrewery.BrewComputer.Manager
         void StopWork();
 
         Action WorkDone { get; set; }
+
+        //Action TempHasChanged { get; set; }
     }
 }

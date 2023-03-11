@@ -13,6 +13,7 @@ namespace BlazorBreweryInterface.Controller
         public PinController(int pinId)
         {
             _pinId = pinId;
+            Shift(false);
         }
 
         public void Shift(bool isOn)
@@ -21,7 +22,7 @@ namespace BlazorBreweryInterface.Controller
             _isOn = isOn;
             using var controller = new GpioController();
             controller.OpenPin(_pinId, PinMode.Output);
-            controller.Write(_pinId, isOn ? PinValue.High : PinValue.Low);
+            controller.Write(_pinId, isOn ? PinValue.Low : PinValue.High);
         }
 
         public void Shift() => Shift(!_isOn);

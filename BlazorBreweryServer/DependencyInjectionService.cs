@@ -12,6 +12,7 @@ using BlazorBreweryServer.Services.Interfaces.ViewModels.Settings;
 using BlazorBreweryServer.Services.ViewModels.Brewing;
 using BlazorBreweryServer.Services.ViewModels.Recipes;
 using BlazorBreweryServer.Services.ViewModels.Settings;
+using BlazorBreweryServer.Services.ViewModels.SingletonTest;
 
 namespace BlazorBreweryServer
 {
@@ -45,6 +46,8 @@ namespace BlazorBreweryServer
             services.AddSingleton<IRelayManager, RelayManager>();
 
             services.AddScoped<IStepBrewService, StepBrewService>();
+
+            services.AddSingleton<ISingletonTestViewModelService, SingletonTestViewModelService>();
         }
     }
 }
