@@ -1,12 +1,11 @@
 ﻿@using BlazorBrewery.BrewComputer.Manager;
-@using System.Threading;
 @using BlazorBrewery.Core.Models.Brewing;
-@inject IPumpManager PumpManager;
 @inject IRelayManager RelayManager;
 @implements IRelayManagerConsumer;
 @implements IDisposable;
 
-<MudField Label="Pumpe" Variant="Variant.Outlined">
+
+<MudField Label="Heizung" Variant="Variant.Outlined">
     <MudButtonGroup OverrideStyles="false">
         <MudButton Color="@_autoColor" Variant="@_autoVariant" Size="Size.Large" OnClick="AutoClicked">Auto</MudButton>
         <MudButton Color="Color.Primary" Variant="@_onVariant" Size="Size.Large" OnClick="OnClicked">On</MudButton>
@@ -15,50 +14,36 @@
 </MudField>
 
 @code {
-
     private Variant _autoVariant = Variant.Filled;
     private Variant _onVariant = Variant.Outlined;
     private Variant _offVariant = Variant.Outlined;
     private Color _autoColor = Color.Primary;
 
-    protected override void OnInitialized()
+    [Parameter]
+    public int PinId { get; set; }
+
+    protected override void OnParametersSet()
     {
         RelayManager.Register(this);
 
-        if (PumpManager == null) return;
-
-        GenerateBorderClass(RelayManager.GetPinState(PumpManager.PinId));
-        ModeChanged(PumpManager.PinId, RelayManager.GetPinMode(PumpManager.PinId));
+        GenerateBorderClass(RelayManager.GetPinState(PinId));
+        ModeChanged(PinId, RelayManager.GetPinMode(PinId));
     }
 
-    protected void AutoClicked()
-    {
-        if (PumpManager == null) return;
-        RelayManager.SetPinMode(PumpManager.PinId, ManagerMode.Auto);
-    }
-
-    protected void OnClicked()
-    {
-        if (PumpManager == null) return;
-        RelayManager.SetPinMode(PumpManager.PinId, ManagerMode.On);
-    }
-
-    protected void OffClicked()
-    {
-        if (PumpManager == null) return;
-        RelayManager.SetPinMode(PumpManager.PinId, ManagerMode.Off);
-    }
+    protected void AutoClicked() => RelayManager.SetPinMode(PinId, ManagerMode.Auto);
+    protected void OnClicked() => RelayManager.SetPinMode(PinId, ManagerMode.On);
+    protected void OffClicked() => RelayManager.SetPinMode(PinId, ManagerMode.Off);
 
     public void StateChanged(int pinId, bool state)
     {
-        if (PumpManager == null || PumpManager.PinId != pinId) return;
+        if (PinId != pinId) return;
         GenerateBorderClass(state);
         InvokeAsync(() => StateHasChanged());
     }
 
     public void ModeChanged(int pinId, ManagerMode managerMode)
     {
-        if (PumpManager == null || PumpManager.PinId != pinId) return;
+        if (PinId != pinId) return;
 
         switch (managerMode)
         {

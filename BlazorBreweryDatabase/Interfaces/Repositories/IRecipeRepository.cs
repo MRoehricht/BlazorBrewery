@@ -14,5 +14,8 @@ namespace BlazorBrewery.Database.Interfaces.Repositories
         Task<BrewingStep?> GetBrewingStep(Guid id);
         Task<List<Pumpinterval>> GetAllPumpintervals();
         Task<Pumpinterval> CreateEmptyPumpInterval();
+        Task Delete(Pumpinterval pumpinterval);
+
+        Task Save(Pumpinterval interval);
     }
 }

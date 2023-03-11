@@ -8,7 +8,7 @@ namespace BlazorBrewery.BrewComputer.Interfaces.Brewing
     {
         ITemperatureManager TemperatureManager { get; }
         void Clear();
-        void Run(BrewingStep brewingStep, IStepProcessesUpdater updater, IProgress<int> progress);
+        Task Run(BrewingStep brewingStep, IStepProcessesUpdater updater, IProgress<int> progress);
 
         void Stop();
 

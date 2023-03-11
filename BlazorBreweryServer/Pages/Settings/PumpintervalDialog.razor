@@ -1,0 +1,47 @@
+﻿@using BlazorBrewery.Core.Models.Brewing;
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@inject IDialogService DialogService
+
+<MudDialog>
+    <DialogContent>
+        <MudContainer>
+            @if (Pumpinterval != null)
+            {
+                <EditForm Model="@Pumpinterval" OnValidSubmit="OnValidSubmit">
+                    <DataAnnotationsValidator />
+                    <MudCard>
+                        <MudCardContent>
+                            <MudTextField Label="Name" Class="m-2"
+                                      @bind-Value="Pumpinterval.Name" For="@(() => Pumpinterval.Name)" />
+                            <MudTextField Label="Laufzeit" HelperText="in Sekunden" Class="m-2"
+                                      @bind-Value="Pumpinterval.RuntimeSeconds" For="@(() => Pumpinterval.RuntimeSeconds)" />
+                            <MudTextField Label="Pausenzeit" HelperText="in Sekunden" Class="m-2"
+                                      @bind-Value="Pumpinterval.PausetimeSeconds" For="@(() => Pumpinterval.PausetimeSeconds)" />
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudContainer Class="d-flex justify-end flex-grow-1 gap-2">
+                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Speichern</MudButton>
+                                <MudButton OnClick="Cancel">Abbruch</MudButton>
+                            </MudContainer>
+                        </MudCardActions>
+                    </MudCard>
+                </EditForm>
+            }
+        </MudContainer>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public Pumpinterval? Pumpinterval { get; set; }
+
+    private void OnValidSubmit(EditContext context)
+    {
+        StateHasChanged();
+        MudDialog.Close(DialogResult.Ok(Pumpinterval));
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

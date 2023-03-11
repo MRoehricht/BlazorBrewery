@@ -25,7 +25,7 @@ namespace BlazorBrewery.BrewComputer.Services.Brewing
             _logger = logger;
         }
 
-        public void Run(BrewingStep brewingStep, IStepProcessesUpdater updater, IProgress<int> progress)
+        public async Task Run(BrewingStep brewingStep, IStepProcessesUpdater updater, IProgress<int> progress)
         {
             _logger.LogInformation($"{DateTime.Now.ToLongTimeString()} Stufe Start -" + brewingStep.Name);
             _startTime = DateTime.Now;
@@ -46,7 +46,7 @@ namespace BlazorBrewery.BrewComputer.Services.Brewing
                     TemperatureManager.WorkDone += WorkDone;
                 }
 
-                TemperatureManager.Work(brewingStep.TargetTemperature, brewingStep.DurationMinutes, brewingStep.Typ, progress);
+                await TemperatureManager.Work(brewingStep.TargetTemperature, brewingStep.DurationMinutes, brewingStep.Typ, progress);
             }
         }
 

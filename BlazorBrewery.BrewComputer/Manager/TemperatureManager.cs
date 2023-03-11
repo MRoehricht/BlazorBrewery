@@ -73,7 +73,7 @@ namespace BlazorBrewery.BrewComputer.Manager
             relayManager.Register(this);
         }
 
-        public void Work(double targetTemperature, int durationMinutes, BrewingStepTyp brewingStepTyp, IProgress<int> progress)
+        public async Task Work(double targetTemperature, int durationMinutes, BrewingStepTyp brewingStepTyp, IProgress<int> progress)
         {
             if (_heatPinId == -1 || brewingStepTyp == BrewingStepTyp.Manually) return;
             _targetTemperature = targetTemperature;
@@ -82,7 +82,7 @@ namespace BlazorBrewery.BrewComputer.Manager
             _isRunning = true;
             _progress = progress;
             _startTime = DateTime.Now;
-
+            _startTemperature = await GetCurrentTemperature();
 
             if (_durationMinutes > 0)
             {
@@ -96,8 +96,6 @@ namespace BlazorBrewery.BrewComputer.Manager
             }
 
             StartTimer();
-
-
         }
 
         private void StartTimer()
@@ -130,6 +128,7 @@ namespace BlazorBrewery.BrewComputer.Manager
                 var fullDif = _targetTemperature - _startTemperature.Value;
                 var targetDif = currentTemperature - _startTemperature.Value;
                 var progressValue = (int)((targetDif * 100) / fullDif);
+                Console.WriteLine(progressValue);
                 _progress?.Report(progressValue);
 
             }
@@ -137,6 +136,7 @@ namespace BlazorBrewery.BrewComputer.Manager
             {
                 var currentSpam = DateTime.Now - _startTime.Value;
                 var progressValue = (int)((currentSpam.TotalSeconds * 100) / (_durationMinutes * 60));
+                Console.WriteLine(progressValue);
                 _progress?.Report(progressValue);
             }
         }
@@ -179,10 +179,6 @@ namespace BlazorBrewery.BrewComputer.Manager
         public async Task<double> GetCurrentTemperature()
         {
             var currentTemperature = await _thermometerController.ReadTemperature();
-            if (!_startTemperature.HasValue)
-            {
-                _startTemperature = currentTemperature;
-            }
             return currentTemperature;
         }
 

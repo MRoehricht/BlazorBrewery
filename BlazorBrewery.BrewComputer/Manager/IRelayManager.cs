@@ -7,6 +7,8 @@ namespace BlazorBrewery.BrewComputer.Manager
         ManagerMode GetPinMode(int pinId);
         bool GetPinState(int pinId);
         void Register(IRelayManagerConsumer relayManagerConsumer);
+
+        void UnRegister(IRelayManagerConsumer relayManagerConsumer);
         void SetPinMode(int pinId, ManagerMode managerMode);
         void SetPinState(int pinId, bool state);
     }

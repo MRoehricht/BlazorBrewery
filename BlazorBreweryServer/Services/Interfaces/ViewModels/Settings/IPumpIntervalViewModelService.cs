@@ -8,5 +8,9 @@ namespace BlazorBreweryServer.Services.Interfaces.ViewModels.Settings
         Task<PumpIntervalViewModel> GetPumpIntervalViewModel();
 
         Task<Pumpinterval> CreateEmtyPumpInterval();
+
+        Task DeletePumpInterval(Pumpinterval interval);
+
+        Task Save(Pumpinterval interval);
     }
 }

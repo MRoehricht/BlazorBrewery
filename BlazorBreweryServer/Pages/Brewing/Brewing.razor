@@ -1,11 +1,13 @@
 ﻿@page "/Brewing"
 @using BlazorBrewery.BrewComputer.Interfaces.Brewing;
+@using BlazorBrewery.BrewComputer.Manager;
 @using BlazorBrewery.Core.Models.Brewing;
 @using BlazorBrewery.Core.Models.Processes;
 @using BlazorBreweryServer.Services.Interfaces.ViewModels.Brewing;
 @using BlazorBreweryServer.ViewModels.Brewing;
 @using BlazorBreweryServer.ViewModels.Recipes;
 @inject IBrewingViewModelService BrewingViewModelService;
+@inject IBrewingManager BrewingManager;
 @inject ISnackbar Snackbar
 @inject IStepBrewService StepBrewService;
 @inject IDialogService DialogService
@@ -24,13 +26,13 @@
     </MudSelect>
     <br />
 
-    @*   <MudPaper Outlined="true" Class="pa-2 ma-2 " Height="50">*@
+    
     <MudStack Justify="Justify.Center" Row="true">
         <TemperatureComponent  TemperatureManager="StepBrewService.TemperatureManager"/>
-        @*<MudPaper Outlined="true" Class="pa-3 ma-1 d-flex align-content-center flex-wrap" Width="185px">*@
+        
 
 
-        @if (_viewModel.SelectedRecipe != null)
+        @if (_viewModel.SelectedRecipe != null && !BrewingIsLocked)
         {
             <div style="@_controllWidth">
                 <MudField Label="Steuerung" Variant="Variant.Outlined">
@@ -70,7 +72,7 @@
                 </MudField>
             </div>
         }
-        @if (_currentBrewingStep != null)
+        @if (_currentBrewingStep != null && !BrewingIsLocked)
         {
             <MudField Label="Schritt" Variant="Variant.Outlined">
                 <MudStack Justify="Justify.FlexStart" Row="true">
@@ -92,6 +94,12 @@
             <BrewingStepPage BrewingStep="step" IsReadOnly="_isBrewingStarted" SelectedRecipe="_viewModel.SelectedRecipe" Refresh="Refresh" RunnigPosition="_currentBrewingStep != null ?_currentBrewingStep.Position : 0" RunnigProgress="runnigProgress" />
         }
     }
+
+    @if (BrewingIsLocked)
+    {
+        <h4> Aktuell wird schon gebraut.</h4>
+        <h6> Bitte warten Sie, bis der Brauprozess abgeschossen ist und laden dann die Seite neu.</h6>
+    }
 }
 
 
@@ -106,16 +114,24 @@
     private static int runnigProgress = 0;
     private Progress<int> _progress = new Progress<int>(s => runnigProgress = s);
     private string _controllWidth => _isBrewingStarted ? "width:140px" : "width:200px";
+    private bool BrewingIsLocked = false;
 
     protected override async Task OnInitializedAsync()
     {
         _viewModel = await BrewingViewModelService.GetBrewingViewModel();
         _progress.ProgressChanged += (s, e) => Refresh();
+
+        BrewingIsLocked = BrewingManager.CurrentBrewingRecipe != null;
+        if (BrewingIsLocked)
+        {
+            _isBrewingStarted = true;
+            BrewingManager.CurrentBrewingRecipeHasChanged += CurrentBrewingRecipeHasChanged;
+        }
     }
 
     public void Refresh()
     {
-        StateHasChanged();
+        InvokeAsync(() => StateHasChanged());
     }
 
     public async Task Save()
@@ -132,19 +148,21 @@
         Refresh();
     }
 
-    public void StartBrewing()
+    public async Task StartBrewing()
     {
         if (_viewModel?.SelectedRecipe == null) return;
         StepBrewService.Clear();
+        BrewingManager.CurrentBrewingRecipe = _viewModel.SelectedRecipe;
 
         _viewModel.BuildQueueBrewingSteps();
         _currentBrewingStep = _viewModel.QueueBrewingSteps.Any() ? _viewModel.QueueBrewingSteps.Dequeue() : null;
         if (_currentBrewingStep == null) return;
+        BrewingManager.CurrentBrewingStep = _currentBrewingStep;
 
         if (StepBrewService.WorkIsDone == null)
             StepBrewService.WorkIsDone += StepIsDone;
 
-        StepBrewService.Run(_currentBrewingStep, new StepProcessesUpdater(), _progress);
+        await StepBrewService.Run(_currentBrewingStep, new StepProcessesUpdater(), _progress);
         Snackbar.Add($"{DateTime.Now.ToLongTimeString()} Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde gestartet.", Severity.Info);
         Snackbar.Add($"{DateTime.Now.ToLongTimeString()} Starte Schritt {_currentBrewingStep.Name}", Severity.Normal);
         _isBrewingStarted = true;
@@ -167,6 +185,8 @@
 
         Snackbar.Add($"{DateTime.Now.ToLongTimeString()} Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde abgebrochen.", Severity.Error);
         _isBrewingStarted = false;
+        BrewingManager.CurrentBrewingRecipe = null;
+        BrewingManager.CurrentBrewingStep = null;
         _currentBrewingStep = null;
         Refresh();
     }
@@ -178,7 +198,7 @@
         if (_currentBrewingStep != null && _currentBrewingStep.Acknowledge)
         {
             var acknowledgeBrewingStep = new BrewingStep { Name = "AcknowledgeBrewingStep", Typ = BrewingStepTyp.HoldTemperature, TargetTemperature = _currentBrewingStep.TargetTemperature, Pumpinterval = _currentBrewingStep.Pumpinterval };
-            StepBrewService.Run(acknowledgeBrewingStep, new StepProcessesUpdater(), _progress);
+            await StepBrewService.Run(acknowledgeBrewingStep, new StepProcessesUpdater(), _progress);
             _acknowledgeBrewingStepIsRunning = true;
 
             var options = new DialogOptions { DisableBackdropClick = true };
@@ -192,16 +212,16 @@
 
             if (!result.Canceled)
             {
-                StartNextStep();
+                await StartNextStep();
             }
         }
         else
         {
-            StartNextStep();
+            await StartNextStep();
         }
     }
 
-    private void StartNextStep()
+    private async Task StartNextStep()
     {
         if (_viewModel?.SelectedRecipe == null || _isBrewingStarted == false) return;
         if (_acknowledgeBrewingStepIsRunning)
@@ -216,13 +236,14 @@
         {
             Snackbar.Add($"{DateTime.Now.ToLongTimeString()} Brauvorgang für {_viewModel.SelectedRecipe.Name} wurde erfolgreich beendet.", Severity.Success);
             _isBrewingStarted = false;
+            BrewingManager.CurrentBrewingRecipe = null;
             var timeString = StepBrewService.BrewTime.ToString("hh':'mm':'ss");
-            DialogService.ShowMessageBox("Brauen abgeschlossen", $"Der Brauvorgang wurde erfolgreich nach {timeString} beendet.", yesText: "OK");
+            await DialogService.ShowMessageBox("Brauen abgeschlossen", $"Der Brauvorgang wurde erfolgreich nach {timeString} beendet.", yesText: "OK");
             Refresh();
         }
         else
         {
-            StepBrewService.Run(_currentBrewingStep, new StepProcessesUpdater(), _progress);
+            await StepBrewService.Run(_currentBrewingStep, new StepProcessesUpdater(), _progress);
             Snackbar.Add($"{DateTime.Now.ToLongTimeString()} Starte Schritt {_currentBrewingStep.Name}", Severity.Normal);
             Refresh();
         }
@@ -235,10 +256,10 @@
         Snackbar.Add($"Ein Schritt zurück ...", Severity.Normal);
     }
 
-    public void SkipNextStep()
+    public async Task SkipNextStep()
     {
         StepBrewService.Stop();
-        StartNextStep();
+        await StartNextStep();
     }
 
     public void OnPauseToggledChanged(bool toggled)
@@ -251,6 +272,20 @@
         else
         {
             Snackbar.Add($"Weiter geht´s ...", Severity.Info);
+        }
+        Refresh();
+    }
+
+    private void CurrentBrewingRecipeHasChanged()
+    {
+        BrewingIsLocked = BrewingManager.CurrentBrewingRecipe != null;
+        if (BrewingIsLocked)
+        {
+            _isBrewingStarted = true;
+        }
+        else
+        {
+            _isBrewingStarted = false;
         }
         Refresh();
     }

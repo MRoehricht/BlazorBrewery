@@ -20,6 +20,11 @@ namespace BlazorBrewery.BrewComputer.Manager
             _relayManagerConsumers.Add(relayManagerConsumer);
         }
 
+        public void UnRegister(IRelayManagerConsumer relayManagerConsumer)
+        {
+            _relayManagerConsumers.Remove(relayManagerConsumer);
+        }
+
         public void SetPinMode(int pinId, ManagerMode managerMode)
         {
             if (_pinModes.ContainsKey(pinId))
@@ -31,6 +36,7 @@ namespace BlazorBrewery.BrewComputer.Manager
                 _pinModes.Add(pinId, managerMode);
             }
 
+
             _relayManagerConsumers.ForEach(relayManagerConsumer => relayManagerConsumer.ModeChanged(pinId, managerMode));
         }
 
@@ -41,7 +47,8 @@ namespace BlazorBrewery.BrewComputer.Manager
                 return mode;
             }
 
-            _pinModes.Add(pinId, ManagerMode.Auto);
+            if (!_pinModes.ContainsKey(pinId))
+                _pinModes.Add(pinId, ManagerMode.Auto);
             return ManagerMode.Auto;
         }
 

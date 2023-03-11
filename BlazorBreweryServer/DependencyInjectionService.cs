@@ -48,6 +48,7 @@ namespace BlazorBreweryServer
             services.AddScoped<IStepBrewService, StepBrewService>();
 
             services.AddSingleton<ISingletonTestViewModelService, SingletonTestViewModelService>();
+            services.AddSingleton<IBrewingManager, BrewingManager>();
         }
     }
 }

@@ -29,5 +29,15 @@ namespace BlazorBreweryServer.Services.ViewModels.Settings
             var pumpInterval = await _recipeRepository.CreateEmptyPumpInterval();
             return pumpInterval;
         }
+
+        public async Task DeletePumpInterval(Pumpinterval interval)
+        {
+            await _recipeRepository.Delete(interval);
+        }
+
+        public async Task Save(Pumpinterval interval)
+        {
+            await _recipeRepository.Save(interval);
+        }
     }
 }

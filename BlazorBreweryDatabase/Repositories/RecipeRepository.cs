@@ -276,6 +276,23 @@ namespace BlazorBrewery.Database.Repositories
             return Parse(newInterval);
         }
 
+        public async Task Delete(Pumpinterval pumpinterval)
+        {
+            var interval = await _recipeContext.PumpIntervals.FindAsync(pumpinterval.Id);
+            _recipeContext.PumpIntervals.Remove(interval);
+            await _recipeContext.SaveChangesAsync();
+        }
+
+        public async Task Save(Pumpinterval pumpinterval)
+        {
+            var interval = await _recipeContext.PumpIntervals.FindAsync(pumpinterval.Id);
+            if (interval == null) return;
+            interval.PausetimeSeconds = pumpinterval.PausetimeSeconds;
+            interval.RuntimeSeconds = pumpinterval.RuntimeSeconds;
+            interval.Name = pumpinterval.Name;
+            await _recipeContext.SaveChangesAsync();
+        }
+
         public Pumpinterval Parse(PumpIntervalEntity entity)
         {
             return new Pumpinterval
