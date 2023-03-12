@@ -2,6 +2,7 @@ using BlazorBrewery.Core.Services;
 using BlazorBrewery.Database.Context;
 using BlazorBreweryServer;
 using BlazorBreweryServer.Data;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
@@ -16,7 +17,14 @@ var config = new ConfigurationBuilder().AddJsonFile("appsettings.json", optional
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
+builder.Services.AddServerSideBlazor(options =>
+{
+    options.DetailedErrors = false;
+    options.DisconnectedCircuitMaxRetained = 100;
+    options.DisconnectedCircuitRetentionPeriod = TimeSpan.FromMinutes(10);
+    options.JSInteropDefaultCallTimeout = TimeSpan.FromMinutes(10);
+    options.MaxBufferedUnacknowledgedRenderBatches = 10;
+});
 builder.Services.AddSingleton<WeatherForecastService>();
 //builder.Services.AddMudServices();
 builder.Services.AddServiceDependencies();
@@ -48,6 +56,11 @@ builder.Services.AddDbContext<RecipeContext>(options =>
         );
 
 var app = builder.Build();
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

@@ -22,5 +22,11 @@ namespace BlazorBrewery.BrewComputer.Manager
 
         public Action? CurrentBrewingRecipeHasChanged { get; set; }
         public Action? CurrentBrewingStepHasChanged { get; set; }
+        public Action? StopAllBewings { get; set; }
+
+        public void RunStopAllBewings()
+        {
+            StopAllBewings?.Invoke();
+        }
     }
 }

@@ -11,6 +11,7 @@
 @inject ISnackbar Snackbar
 @inject IStepBrewService StepBrewService;
 @inject IDialogService DialogService
+@implements IDisposable;
 
 @*<PageTitle>Brauen</PageTitle>*@
 
@@ -26,10 +27,10 @@
     </MudSelect>
     <br />
 
-    
+
     <MudStack Justify="Justify.Center" Row="true">
-        <TemperatureComponent  TemperatureManager="StepBrewService.TemperatureManager"/>
-        
+        <TemperatureComponent TemperatureManager="StepBrewService.TemperatureManager" />
+
 
 
         @if (_viewModel.SelectedRecipe != null && !BrewingIsLocked)
@@ -48,7 +49,7 @@
                                     <MudIconButton Icon="@Icons.Material.Filled.Save" Variant="Variant.Outlined" Size="Size.Large" Color="Color.Primary" OnClick="Save"></MudIconButton>
                                 </MudTooltip>
                                 <MudTooltip Text="Brauen beginnen">
-                                    <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Variant="Variant.Outlined"  Size="Size.Large" Color="Color.Success" OnClick="StartBrewing"></MudIconButton>
+                                    <MudIconButton Icon="@Icons.Material.Filled.PlayArrow" Variant="Variant.Outlined" Size="Size.Large" Color="Color.Success" OnClick="StartBrewing"></MudIconButton>
                                 </MudTooltip>
                             }
                             @if (_isBrewingStarted)
@@ -78,7 +79,7 @@
                 <MudStack Justify="Justify.FlexStart" Row="true">
                     <MudIcon Class="d-flex align-start flex" Icon="@Icons.Material.Filled.Checklist" Size="Size.Large" />
 
-                    <MudText Class="d-flex align-center" Typo="@Typo.h6">@_currentBrewingStep.Name</MudText>
+                    <MudText Class="d-flex align-center" Typo="@Typo.h6">@_currentBrewingStep?.Name</MudText>
 
                 </MudStack>
             </MudField>
@@ -97,6 +98,10 @@
 
     @if (BrewingIsLocked)
     {
+        <MudTooltip Text="Brauen stoppen">
+            <MudIconButton Icon="@Icons.Material.Filled.Stop" Size="Size.Large" Variant="Variant.Outlined" Color="Color.Error" OnClick="CallStopAllBrewings"></MudIconButton>
+        </MudTooltip>
+
         <h4> Aktuell wird schon gebraut.</h4>
         <h6> Bitte warten Sie, bis der Brauprozess abgeschossen ist und laden dann die Seite neu.</h6>
     }
@@ -126,6 +131,9 @@
         {
             _isBrewingStarted = true;
             BrewingManager.CurrentBrewingRecipeHasChanged += CurrentBrewingRecipeHasChanged;
+        }
+        else{
+            BrewingManager.StopAllBewings += StopAllBewings;
         }
     }
 
@@ -288,5 +296,24 @@
             _isBrewingStarted = false;
         }
         Refresh();
+    }
+
+    private void StopAllBewings()
+    {
+        Dispose();
+    }
+
+    private void CallStopAllBrewings()
+    {
+        BrewingManager?.RunStopAllBewings();
+    }
+
+
+    public void Dispose()
+    {
+        if (_isBrewingStarted)
+        {
+            StopBrewing();
+        }
     }
 }
