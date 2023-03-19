@@ -1,45 +1,34 @@
 ﻿@using BlazorBrewery.BrewComputer.Manager;
 @using System.Timers;
-@using BlazorBrewery.Core.Models.Brewing;
-@using System.Diagnostics;
-@inject IRelayManager RelayManager;
 @implements IDisposable;
 
 @if (!string.IsNullOrEmpty(_currentTemperature) && TemperatureManager != null)
 {
-    <MudStack Justify="Justify.FlexStart" Row="true">
-        @*     <MudField  Label="Temperatur" Variant="Variant.Outlined">
-    <MudTextField @bind-Value="_currentTemperature" ReadOnly="true" Variant="Variant.Text" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.DeviceThermostat" />
-    </MudField>*@
-
-        <div style="min-height:80px">
-            <MudField Label="Temperatur" Variant="Variant.Outlined">
-                <MudStack Justify="Justify.FlexStart" Row="true">
-                    <MudIcon Icon="@Icons.Material.Filled.DeviceThermostat" Color="@_deviceThermostatColor" Size="Size.Large" />
-                    <MudText Typo="@Typo.h6">@_currentTemperature</MudText>
-                </MudStack>
-            </MudField>
-        </div>
-        <HeatComponent PinId="TemperatureManager.PinId"></HeatComponent>
-        <PumpComponent></PumpComponent>
-    </MudStack>
+    <div style="min-height:80px">
+        <MudField Label="Temperatur" Variant="Variant.Outlined">
+            <MudStack Justify="Justify.FlexStart" Row="true">
+                <MudIcon Icon="@Icons.Material.Filled.DeviceThermostat" Color="@_deviceThermostatColor" Size="Size.Large" />
+                <MudText Typo="@Typo.h6">@_currentTemperature</MudText>
+            </MudStack>
+        </MudField>
+    </div>
 }
 
 @code {
-    private string? _currentTemperature;
-    private Color _deviceThermostatColor = Color.Info;    
-    private Timer _timer = new(1000);
-
     [Parameter]
     public ITemperatureManager? TemperatureManager { get; set; }
-
+        
+    private string? _currentTemperature;
+    private Color _deviceThermostatColor = Color.Info;
+    private Timer _timer = new(1000);
+        
     protected override void OnInitialized()
     {
         _timer.Elapsed += (sender, eventArgs) => OnTimerCallback();
         _timer.Start();
     }
 
-    protected void SetDeviceThermostatColor(double currentTemperature)
+    private void SetDeviceThermostatColor(double currentTemperature)
     {
         if (currentTemperature > 0 && currentTemperature < 20)
         {
@@ -57,7 +46,7 @@
         {
             _deviceThermostatColor = Color.Error;
         }
-    }    
+    }
 
     private void OnTimerCallback()
     {
@@ -74,6 +63,6 @@
 
     public void Dispose()
     {
-        _timer.Dispose();        
-    }    
+        _timer.Dispose();
+    }
 }

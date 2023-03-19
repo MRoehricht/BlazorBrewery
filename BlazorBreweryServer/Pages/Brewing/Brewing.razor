@@ -3,6 +3,7 @@
 @using BlazorBrewery.BrewComputer.Manager;
 @using BlazorBrewery.Core.Models.Brewing;
 @using BlazorBrewery.Core.Models.Processes;
+@using BlazorBrewery.Core.Services;
 @using BlazorBreweryServer.Services.Interfaces.ViewModels.Brewing;
 @using BlazorBreweryServer.ViewModels.Brewing;
 @using BlazorBreweryServer.ViewModels.Recipes;
@@ -11,6 +12,7 @@
 @inject ISnackbar Snackbar
 @inject IStepBrewService StepBrewService;
 @inject IDialogService DialogService
+@inject IConfigurationStoreService ConfigurationStoreService;
 @implements IDisposable;
 
 @*<PageTitle>Brauen</PageTitle>*@
@@ -28,10 +30,12 @@
     <br />
 
 
-    <MudStack Justify="Justify.Center" Row="true">
-        <TemperatureComponent TemperatureManager="StepBrewService.TemperatureManager" />
-
-
+    <MudStack Justify="Justify.Center" Row="true">       
+        <MudStack Justify="Justify.FlexStart" Row="true">
+            <TemperatureComponent TemperatureManager="StepBrewService.TemperatureManager" />
+            <RelaySwitchComponent PinId="ConfigurationStoreService.HeatPinId" Label="Heizung" />
+            <RelaySwitchComponent PinId="ConfigurationStoreService.PumpPinId" Label="Pumpe" />
+        </MudStack>
 
         @if (_viewModel.SelectedRecipe != null && !BrewingIsLocked)
         {

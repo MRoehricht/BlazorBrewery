@@ -5,30 +5,32 @@
 
 <MudDialog>
     <DialogContent>
-        <MudContainer>
-            @if (Pumpinterval != null)
-            {
-                <EditForm Model="@Pumpinterval" OnValidSubmit="OnValidSubmit">
-                    <DataAnnotationsValidator />
-                    <MudCard>
-                        <MudCardContent>
+
+        @if (Pumpinterval != null)
+        {
+            <EditForm Model="@Pumpinterval" OnValidSubmit="OnValidSubmit">
+                <DataAnnotationsValidator />
+                <MudCard>
+                    <MudCardContent>
+                        <MudStack Justify="Justify.FlexStart" Row="true">
                             <MudTextField Label="Name" Class="m-2"
                                       @bind-Value="Pumpinterval.Name" For="@(() => Pumpinterval.Name)" />
                             <MudTextField Label="Laufzeit" HelperText="in Sekunden" Class="m-2"
                                       @bind-Value="Pumpinterval.RuntimeSeconds" For="@(() => Pumpinterval.RuntimeSeconds)" />
                             <MudTextField Label="Pausenzeit" HelperText="in Sekunden" Class="m-2"
                                       @bind-Value="Pumpinterval.PausetimeSeconds" For="@(() => Pumpinterval.PausetimeSeconds)" />
-                        </MudCardContent>
-                        <MudCardActions>
-                            <MudContainer Class="d-flex justify-end flex-grow-1 gap-2">
-                                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Speichern</MudButton>
-                                <MudButton OnClick="Cancel">Abbruch</MudButton>
-                            </MudContainer>
-                        </MudCardActions>
-                    </MudCard>
-                </EditForm>
-            }
-        </MudContainer>
+                        </MudStack>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudContainer Class="d-flex justify-end flex-grow-1 gap-2">
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Speichern</MudButton>
+                            <MudButton OnClick="Cancel">Abbruch</MudButton>
+                        </MudContainer>
+                    </MudCardActions>
+                </MudCard>
+            </EditForm>
+        }
+
     </DialogContent>
 </MudDialog>
 

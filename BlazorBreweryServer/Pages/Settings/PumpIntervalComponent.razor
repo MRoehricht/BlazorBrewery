@@ -14,18 +14,21 @@
 }
 else
 {
-    <MudFab Color="Color.Primary" Size="Size.Medium" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateNewRecipe" />
+    <MudFab Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Add" OnClick="CreateNewRecipe" />
     <MudTable Items="@_viewModel.Pumpintervals" Hover="true" Striped="true" Bordered="true" Breakpoint="Breakpoint.Sm" OnRowClick="RowClickEvent" T="Pumpinterval">
         <HeaderContent>
             <MudTh>Name</MudTh>
-            <MudTh>Laufzeit (Sekunden)</MudTh>
-            <MudTh>Pausenzeit (Sekunden)</MudTh>
+            <MudTh>Laufzeit</MudTh>
+            <MudTh>Pausenzeit</MudTh>
+            <MudTh></MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="Laufzeit">@context.RuntimeSeconds</MudTd>
             <MudTd DataLabel="Pausenzeit">@context.PausetimeSeconds</MudTd>
-            <MudIconButton Icon="@Icons.Material.Filled.Delete" aria-label="Löschen" OnClick="() => DeleteItem(context)"></MudIconButton>
+            <MudTd>
+                <MudIconButton Class="object-right" Icon="@Icons.Material.Filled.Delete" aria-label="Löschen" OnClick="() => DeleteItem(context)"/>
+            </MudTd>            
         </RowTemplate>
     </MudTable>
 }

@@ -4,8 +4,7 @@
 @implements IRelayManagerConsumer;
 @implements IDisposable;
 
-
-<MudField Label="Heizung" Variant="Variant.Outlined">
+<MudField Label="@Label" Variant="Variant.Outlined">
     <MudButtonGroup OverrideStyles="false">
         <MudButton Color="@_autoColor" Variant="@_autoVariant" Size="Size.Large" OnClick="AutoClicked">Auto</MudButton>
         <MudButton Color="Color.Primary" Variant="@_onVariant" Size="Size.Large" OnClick="OnClicked">On</MudButton>
@@ -14,36 +13,53 @@
 </MudField>
 
 @code {
+    [Parameter]
+    public int? PinId { get; set; }
+
+    [Parameter]
+    public string? Label { get; set; }
+
     private Variant _autoVariant = Variant.Filled;
     private Variant _onVariant = Variant.Outlined;
     private Variant _offVariant = Variant.Outlined;
     private Color _autoColor = Color.Primary;
 
-    [Parameter]
-    public int PinId { get; set; }
-
-    protected override void OnParametersSet()
+    protected override void OnInitialized()
     {
+        if (!PinId.HasValue) return;
         RelayManager.Register(this);
-
-        GenerateBorderClass(RelayManager.GetPinState(PinId));
-        ModeChanged(PinId, RelayManager.GetPinMode(PinId));
+        GenerateBorderClass(RelayManager.GetPinState(PinId.Value));
+        ModeChanged(PinId.Value, RelayManager.GetPinMode(PinId.Value));
     }
 
-    protected void AutoClicked() => RelayManager.SetPinMode(PinId, ManagerMode.Auto);
-    protected void OnClicked() => RelayManager.SetPinMode(PinId, ManagerMode.On);
-    protected void OffClicked() => RelayManager.SetPinMode(PinId, ManagerMode.Off);
+    protected void AutoClicked()
+    {        
+        if (!PinId.HasValue) return;
+        RelayManager.SetPinMode(PinId.Value, ManagerMode.Auto);
+    }
+
+    protected void OnClicked()
+    {
+        if (!PinId.HasValue) return;
+        RelayManager.SetPinMode(PinId.Value, ManagerMode.On);
+    }
+
+    protected void OffClicked()
+    {
+        if (!PinId.HasValue) return;
+        RelayManager.SetPinMode(PinId.Value, ManagerMode.Off);
+    }
 
     public void StateChanged(int pinId, bool state)
     {
-        if (PinId != pinId) return;
+        if (!PinId.HasValue || PinId.Value != pinId) return;
         GenerateBorderClass(state);
         InvokeAsync(() => StateHasChanged());
     }
 
     public void ModeChanged(int pinId, ManagerMode managerMode)
     {
-        if (PinId != pinId) return;
+        if (!PinId.HasValue || PinId.Value != pinId) return;
 
         switch (managerMode)
         {
